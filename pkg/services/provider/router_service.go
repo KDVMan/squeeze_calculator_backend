@@ -18,6 +18,7 @@ func (object *ProviderService) RouterService() services_interface_router.RouterS
 			object.CalculatorRoute,
 			object.CalculatorPresetRoute,
 			object.CalculatorFormulaPresetRoute,
+			object.BotRoute,
 		)
 	}
 

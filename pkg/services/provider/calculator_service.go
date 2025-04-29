@@ -11,6 +11,7 @@ func (object *ProviderService) CalculatorService() services_interface_calculator
 			object.ConfigService,
 			object.StorageService,
 			object.WebsocketService,
+			object.DumpService,
 			object.InitService,
 			object.SymbolService,
 			object.QuoteService,

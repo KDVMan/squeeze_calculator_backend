@@ -1,6 +1,7 @@
 package services_router
 
 import (
+	routes_interface_bot "backend/internal/routes/bot/interface"
 	routes_interface_calculator "backend/internal/routes/calculator/interface"
 	routes_interface_calculator_formula_preset "backend/internal/routes/calculator_formula_preset/interface"
 	routes_interface_calculator_preset "backend/internal/routes/calculator_preset/interface"
@@ -35,6 +36,7 @@ func NewRouterService(
 	calculatorRoute func() routes_interface_calculator.CalculatorRoute,
 	calculatorPresetRoute func() routes_interface_calculator_preset.CalculatorPresetRoute,
 	calculatorFormulaPresetRoute func() routes_interface_calculator_formula_preset.CalculatorFormulaPresetRoute,
+	botRoute func() routes_interface_bot.BotRoute,
 ) services_interface_router.RouterService {
 	router := chi.NewRouter()
 
@@ -71,6 +73,7 @@ func NewRouterService(
 		r.Mount("/calculator", calculatorRoute().GetRouter())
 		r.Mount("/calculator_preset", calculatorPresetRoute().GetRouter())
 		r.Mount("/calculator_formula_preset", calculatorFormulaPresetRoute().GetRouter())
+		r.Mount("/bot", botRoute().GetRouter())
 	})
 
 	return routerService

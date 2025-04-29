@@ -34,6 +34,7 @@ func loadRandom(calculatorModel *models_calculator_preset.CalculatorPresetModel)
 				calculatorModel.StopTimeTo,
 				calculatorModel.StopTimeStep,
 			)
+
 			stopTimeCombinations = append(stopTimeCombinations, stopTime*60*1000)
 
 			stopPercent := services_helper.GetRandomFloatByInt(
@@ -41,6 +42,7 @@ func loadRandom(calculatorModel *models_calculator_preset.CalculatorPresetModel)
 				calculatorModel.StopPercentTo,
 				calculatorModel.StopPercentStep,
 			)
+
 			stopPercentCombinations = append(stopPercentCombinations, stopPercent)
 		} else if calculatorModel.StopTime {
 			stopTime := services_helper.GetRandomInt(
@@ -48,6 +50,7 @@ func loadRandom(calculatorModel *models_calculator_preset.CalculatorPresetModel)
 				calculatorModel.StopTimeTo,
 				calculatorModel.StopTimeStep,
 			)
+
 			stopTimeCombinations = append(stopTimeCombinations, stopTime*60*1000)
 		} else if calculatorModel.StopPercent {
 			stopPercent := services_helper.GetRandomFloatByInt(
@@ -55,6 +58,7 @@ func loadRandom(calculatorModel *models_calculator_preset.CalculatorPresetModel)
 				calculatorModel.StopPercentTo,
 				calculatorModel.StopPercentStep,
 			)
+
 			stopPercentCombinations = append(stopPercentCombinations, stopPercent)
 		}
 

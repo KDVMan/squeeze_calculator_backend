@@ -11,4 +11,5 @@ type CalculatorFormulaPresetService interface {
 	Edit(*models_calculator_formula_preset.EditRequestModel) ([]*models_calculator_formula_preset.CalculatorFormulaPresetModel, error)
 	Delete(*models_calculator_formula_preset.DeleteRequestModel) ([]*models_calculator_formula_preset.CalculatorFormulaPresetModel, error)
 	Update(*models_calculator_formula_preset.UpdateRequestModel) ([]*models_calculator_formula_preset.CalculatorFormulaPresetModel, error)
+	Duplicate(*models_calculator_formula_preset.DuplicateRequestModel) ([]*models_calculator_formula_preset.CalculatorFormulaPresetModel, error)
 }

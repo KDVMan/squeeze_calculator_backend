@@ -21,7 +21,6 @@ func (object *calculatorServiceImplementation) Update(request *models_calculator
 	presetModel.Window = request.Window
 	presetModel.TradeDirection = request.TradeDirection
 	presetModel.Interval = request.Interval
-	presetModel.TimeFrom = request.TimeFrom
 	presetModel.TimeTo = request.TimeTo
 	presetModel.Bind = request.Bind
 	presetModel.PercentInFrom = request.PercentInFrom

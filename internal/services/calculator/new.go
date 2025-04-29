@@ -9,6 +9,7 @@ import (
 	services_interface_symbol "backend/internal/services/symbol/interface"
 	services_interface_websocket "backend/internal/services/websocket/interface"
 	services_interface_config "backend/pkg/services/config/interface"
+	services_interface_dump "backend/pkg/services/dump/interface"
 	services_interface_storage "backend/pkg/services/storage/interface"
 )
 
@@ -16,6 +17,7 @@ type calculatorServiceImplementation struct {
 	configService                  func() services_interface_config.ConfigService
 	storageService                 func() services_interface_storage.StorageService
 	websocketService               func() services_interface_websocket.WebsocketService
+	dumpService                    func() services_interface_dump.DumpService
 	initService                    func() services_interface_init.InitService
 	symbolService                  func() services_interface_symbol.SymbolService
 	quoteService                   func() services_interface_quote.QuoteService
@@ -28,6 +30,7 @@ func NewCalculatorService(
 	configService func() services_interface_config.ConfigService,
 	storageService func() services_interface_storage.StorageService,
 	websocketService func() services_interface_websocket.WebsocketService,
+	dumpService func() services_interface_dump.DumpService,
 	initService func() services_interface_init.InitService,
 	symbolService func() services_interface_symbol.SymbolService,
 	quoteService func() services_interface_quote.QuoteService,
@@ -37,6 +40,7 @@ func NewCalculatorService(
 		configService:                  configService,
 		storageService:                 storageService,
 		websocketService:               websocketService,
+		dumpService:                    dumpService,
 		initService:                    initService,
 		symbolService:                  symbolService,
 		quoteService:                   quoteService,

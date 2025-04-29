@@ -32,6 +32,7 @@ func NewCalculatorFormulaPresetRoute(
 	route.router.Post("/edit", route.edit())
 	route.router.Post("/delete", route.delete())
 	route.router.Post("/update", route.update())
+	route.router.Post("/duplicate", route.duplicate())
 
 	return route
 }

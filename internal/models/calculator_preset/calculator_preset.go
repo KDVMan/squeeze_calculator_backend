@@ -13,7 +13,6 @@ type CalculatorPresetModel struct {
 	Window          int64                `json:"window"`
 	TradeDirection  enums.TradeDirection `json:"tradeDirection"`
 	Interval        enums.Interval       `json:"interval"`
-	TimeFrom        int64                `json:"timeFrom"`
 	TimeTo          int64                `json:"timeTo"`
 	Bind            []enums.Bind         `gorm:"-" json:"bind"`
 	BindJson        string               `gorm:"type:text" json:"-"`

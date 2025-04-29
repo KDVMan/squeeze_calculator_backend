@@ -20,6 +20,7 @@ func (object *calculatorServiceImplementation) Calculate(request *models_calcula
 	var wg sync.WaitGroup
 	object.calculateSymbol = request.Symbol
 	object.calculateResult = nil
+	timeFrom := request.TimeTo - request.Window*60000
 
 	symbolModel, err := object.symbolService().Load(request.Symbol, enums_symbol.SymbolStatusActive)
 	if err != nil {
@@ -32,7 +33,7 @@ func (object *calculatorServiceImplementation) Calculate(request *models_calcula
 	}
 
 	optimizations := services_calculator_optimization.Load(calculatorModel)
-	quoteRange := models_quote.GetRange(int64(object.configService().GetConfig().Binance.FuturesLimit), request.TimeFrom, request.TimeTo, enums.IntervalMilliseconds(enums.Interval1m))
+	quoteRange := models_quote.GetRange(int64(object.configService().GetConfig().Binance.FuturesLimit), timeFrom, request.TimeTo, enums.IntervalMilliseconds(enums.Interval1m))
 
 	progressModel := &models_websocket.ProgressChannelModel{
 		Count:  0,

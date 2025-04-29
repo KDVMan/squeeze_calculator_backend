@@ -1,6 +1,7 @@
 package services_provider
 
 import (
+	routes_interface_bot "backend/internal/routes/bot/interface"
 	routes_interface_calculator "backend/internal/routes/calculator/interface"
 	routes_interface_calculator_formula_preset "backend/internal/routes/calculator_formula_preset/interface"
 	routes_interface_calculator_preset "backend/internal/routes/calculator_preset/interface"
@@ -9,6 +10,7 @@ import (
 	routes_interface_quote "backend/internal/routes/quote/interface"
 	routes_interface_symbol "backend/internal/routes/symbol/interface"
 	routes_interface_symbol_list "backend/internal/routes/symbol_list/interface"
+	services_interface_bot "backend/internal/services/bot/interface"
 	services_interface_calculator "backend/internal/services/calculator/interface"
 	services_interface_calculator_formula_preset "backend/internal/services/calculator_formula_preset/interface"
 	services_interface_calculator_preset "backend/internal/services/calculator_preset/interface"
@@ -51,6 +53,7 @@ type ProviderService struct {
 	calculatorRoute              routes_interface_calculator.CalculatorRoute
 	calculatorPresetRoute        routes_interface_calculator_preset.CalculatorPresetRoute
 	calculatorFormulaPresetRoute routes_interface_calculator_formula_preset.CalculatorFormulaPresetRoute
+	botRoute                     routes_interface_bot.BotRoute
 
 	// сервисы
 	websocketService               services_interface_websocket.WebsocketService
@@ -65,6 +68,7 @@ type ProviderService struct {
 	calculatorService              services_interface_calculator.CalculatorService
 	calculatorPresetService        services_interface_calculator_preset.CalculatorPresetService
 	calculatorFormulaPresetService services_interface_calculator_formula_preset.CalculatorFormulaPresetService
+	botService                     services_interface_bot.BotService
 }
 
 func NewProviderService(parentCtx context.Context) *ProviderService {

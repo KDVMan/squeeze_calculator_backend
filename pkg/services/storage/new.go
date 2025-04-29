@@ -1,6 +1,7 @@
 package services_storage
 
 import (
+	models_bot "backend/internal/models/bot"
 	models_calculator_formula_preset "backend/internal/models/calculator_formula_preset"
 	models_calculator_preset "backend/internal/models/calculator_preset"
 	models_chart_settings "backend/internal/models/chart_settings"
@@ -55,6 +56,7 @@ func NewStorageService(configService func() services_interface_config.ConfigServ
 		&models_quote.QuoteModel{},
 		&models_calculator_preset.CalculatorPresetModel{},
 		&models_calculator_formula_preset.CalculatorFormulaPresetModel{},
+		&models_bot.BotModel{},
 	)
 
 	if err != nil {

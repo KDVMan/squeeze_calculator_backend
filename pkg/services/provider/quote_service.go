@@ -2,10 +2,10 @@ package services_provider
 
 import (
 	services_quote "backend/internal/services/quote"
-	services_quote_interface "backend/internal/services/quote/interface"
+	services_interface_quote "backend/internal/services/quote/interface"
 )
 
-func (object *ProviderService) QuoteService() services_quote_interface.QuoteService {
+func (object *ProviderService) QuoteService() services_interface_quote.QuoteService {
 	if object.quoteService == nil {
 		object.quoteService = services_quote.NewQuoteService(
 			object.StorageService,

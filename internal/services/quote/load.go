@@ -23,7 +23,7 @@ func (object *quoteServiceImplementation) Load(request *models_quote.QuoteReques
 			return nil, err
 		}
 
-		request.TimeStart = calculatorPresetModel.TimeFrom
+		request.TimeStart = calculatorPresetModel.TimeTo - calculatorPresetModel.Window*60000
 		request.TimeEnd = calculatorPresetModel.TimeTo
 
 		response.Deals = calculateResultsModels[request.Index].Deals

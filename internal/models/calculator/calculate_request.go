@@ -10,8 +10,7 @@ type CalculateRequestModel struct {
 	Window          int64                `json:"window" validate:"gte=0"`
 	TradeDirection  enums.TradeDirection `json:"tradeDirection" validate:"required,tradeDirection"`
 	Interval        enums.Interval       `json:"interval" validate:"required,interval"`
-	TimeFrom        int64                `json:"timeFrom" validate:"required,gt=0"`
-	TimeTo          int64                `json:"timeTo" validate:"required,gtefield=TimeFrom"`
+	TimeTo          int64                `json:"timeTo" validate:"required,gt=0"`
 	Bind            []enums.Bind         `json:"bind" validate:"required,bind"`
 	PercentInFrom   float64              `json:"percentInFrom" validate:"required,gt=0"`
 	PercentInTo     float64              `json:"percentInTo" validate:"required,gtefield=PercentInFrom"`
