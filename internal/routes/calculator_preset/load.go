@@ -7,7 +7,7 @@ import (
 
 func (object *calculatorPresetRouteImplementation) load() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		presetsModels, err := object.calculatorPresetService().Load()
+		presetsModels, err := object.calculatorPresetService().LoadAll()
 
 		if err != nil {
 			var message = "failed to load presetsModels"

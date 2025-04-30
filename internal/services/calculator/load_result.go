@@ -3,6 +3,7 @@ package services_calculator
 import (
 	"backend/internal/enums"
 	models_calculate "backend/internal/models/calculate"
+	models_calculator_formula_preset "backend/internal/models/calculator_formula_preset"
 	"sort"
 )
 
@@ -29,14 +30,14 @@ func (object *calculatorServiceImplementation) LoadResult(symbol string) []*mode
 	}
 
 	for _, calculateResult := range object.calculateResult {
-		if ApplyFilters(calculateResult, preset.Filters) {
+		if models_calculator_formula_preset.ApplyFilters(calculateResult, preset.Filters) {
 			results = append(results, calculateResult)
 			UpdateValueRanges(calculateResult, ranges)
 		}
 	}
 
 	for _, result := range results {
-		result.Score = ApplyFormula(result, preset.Formulas, ranges)
+		result.Score = models_calculator_formula_preset.ApplyFormula(result, preset.Formulas, ranges)
 	}
 
 	sort.Slice(results, func(i, j int) bool {

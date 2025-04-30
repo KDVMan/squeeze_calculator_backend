@@ -3,7 +3,9 @@ package services_bot
 import (
 	enums_bot "backend/internal/enums/bot"
 	enums_symbol "backend/internal/enums/symbol"
+	enums_websocket "backend/internal/enums/websocket"
 	models_bot "backend/internal/models/bot"
+	models_websocket "backend/internal/models/websocket"
 	services_helper "backend/pkg/services/helper"
 	"errors"
 	"fmt"
@@ -69,7 +71,7 @@ func (object *botServiceImplementation) Start(request *models_bot.StartRequestMo
 		StopPercentTo:             calculatorPresetModel.StopPercentTo,
 		StopPercentStep:           calculatorPresetModel.StopPercentStep,
 		Algorithm:                 calculatorPresetModel.Algorithm,
-		Status:                    enums_bot.StatusStart,
+		Status:                    enums_bot.StatusNew,
 		Filters:                   calculatorFormulaPresetModel.Filters,
 		Formulas:                  calculatorFormulaPresetModel.Formulas,
 		TickSize:                  symbolModel.Limit.TickSize,
@@ -80,24 +82,13 @@ func (object *botServiceImplementation) Start(request *models_bot.StartRequestMo
 		return err
 	}
 
-	// currentTime := time.Now().UnixMilli()
-	// timeFrom := currentTime - (tradeModel.Window * 60 * 1000)
-	// timeTo := currentTime
-	// quoteRange := models_quote.GetRange(int64(object.configService().GetConfig().Binance.FuturesLimit), timeFrom, timeTo, enums.IntervalMilliseconds(enums.Interval1m))
-	//
-	// quotes, err := object.quoteService().LoadRange(request.Symbol, quoteRange, &models_channel.ProgressChannelModel{})
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// object.quoteRepositoryService().Add(tradeModel.Symbol, quotes)
-	// object.tradeRepository().Add(&tradeModel)
-	// object.exchangeWebsocketService().SubscribeTrade(request.Symbol)
+	object.websocketService().GetBroadcastChannel() <- &models_websocket.BroadcastChannelModel{
+		Event: enums_websocket.WebsocketEventBotList,
+		Data:  object.LoadAll(),
+	}
 
-	// object.websocketService().GetBroadcastChannel() <- &models_channel.BroadcastChannelModel{
-	// 	Event: enums.WebsocketEventExecTrade,
-	// 	Data:  object.tradeRepository().GetAll(),
-	// }
+	object.stopChannels[botModel.ID] = make(chan struct{})
+	object.GetRunChannel() <- &botModel
 
 	return nil
 }

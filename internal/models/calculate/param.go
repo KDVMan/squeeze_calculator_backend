@@ -12,4 +12,5 @@ type ParamModel struct {
 	PercentOut     float64              `json:"percentOut"`
 	StopTime       int64                `json:"stopTime"`
 	StopPercent    float64              `json:"stopPercent"`
+	IsCurrent      bool                 `json:"isCurrent"`
 }

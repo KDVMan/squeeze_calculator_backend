@@ -9,10 +9,12 @@ import (
 	services_interface_symbol "backend/internal/services/symbol/interface"
 	services_interface_websocket "backend/internal/services/websocket/interface"
 	services_interface_config "backend/pkg/services/config/interface"
+	services_interface_logger "backend/pkg/services/logger/interface"
 	services_interface_storage "backend/pkg/services/storage/interface"
 )
 
 type calculatorPresetServiceImplementation struct {
+	loggerService                  func() services_interface_logger.LoggerService
 	configService                  func() services_interface_config.ConfigService
 	storageService                 func() services_interface_storage.StorageService
 	websocketService               func() services_interface_websocket.WebsocketService
@@ -25,6 +27,7 @@ type calculatorPresetServiceImplementation struct {
 }
 
 func NewCalculatorPresetService(
+	loggerService func() services_interface_logger.LoggerService,
 	configService func() services_interface_config.ConfigService,
 	storageService func() services_interface_storage.StorageService,
 	websocketService func() services_interface_websocket.WebsocketService,
@@ -34,6 +37,7 @@ func NewCalculatorPresetService(
 	calculatorFormulaPresetService func() services_interface_calculator_formula_preset.CalculatorFormulaPresetService,
 ) services_interface_calculator_preset.CalculatorPresetService {
 	return &calculatorPresetServiceImplementation{
+		loggerService:                  loggerService,
 		configService:                  configService,
 		storageService:                 storageService,
 		websocketService:               websocketService,

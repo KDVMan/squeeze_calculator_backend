@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func GetCpu(minus int) int {
@@ -134,4 +135,8 @@ func GenerateRangeByStep(from int64, to int64, step int64) []int64 {
 	}
 
 	return out
+}
+
+func MustConvertUnixMillisecondsToString(value int64) string {
+	return time.UnixMilli(value).Format("02.01.2006 15:04:05.000")
 }

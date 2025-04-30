@@ -4,7 +4,7 @@ import (
 	"backend/internal/enums"
 )
 
-type CalculateRequestModel struct {
+type CalculatorRequestModel struct {
 	ID              uint                 `json:"id" validate:"required,gt=0"`
 	Symbol          string               `json:"symbol" validate:"required,alphanum,uppercase"`
 	Window          int64                `json:"window" validate:"gte=0"`

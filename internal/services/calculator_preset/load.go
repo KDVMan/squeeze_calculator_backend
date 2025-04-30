@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (object *calculatorPresetServiceImplementation) Load() ([]*models_calculator_preset.CalculatorPresetModel, error) {
+func (object *calculatorPresetServiceImplementation) LoadAll() ([]*models_calculator_preset.CalculatorPresetModel, error) {
 	var presetsModels []*models_calculator_preset.CalculatorPresetModel
 
 	if err := object.storageService().DB().

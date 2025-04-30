@@ -42,6 +42,7 @@ type BotModel struct {
 	FormulasJson              string                                          `json:"-"`
 	TickSize                  float64                                         `json:"tickSize"`
 	Param                     ParamModel                                      `gorm:"embedded;embeddedPrefix:param_" json:"param"`
+	ApiSend                   bool                                            `json:"apiSend"`
 }
 
 func (BotModel) TableName() string {

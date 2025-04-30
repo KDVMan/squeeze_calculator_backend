@@ -2,49 +2,48 @@ package services_calculator_optimization
 
 import (
 	models_calculator_optimization "backend/internal/models/calculator_optimization"
-	models_calculator_preset "backend/internal/models/calculator_preset"
 	services_helper "backend/pkg/services/helper"
 	"fmt"
 )
 
-func loadGrid(calculatorModel *models_calculator_preset.CalculatorPresetModel) map[string]*models_calculator_optimization.CalculatorOptimizationModel {
+func loadGrid(request *models_calculator_optimization.CalculatorOptimizationRequestModel) map[string]*models_calculator_optimization.CalculatorOptimizationModel {
 	optimizations := make(map[string]*models_calculator_optimization.CalculatorOptimizationModel)
 	iteration := 0
 
 	percentInMin, percentInMax, percentInStep, percentInAccuracy := services_helper.GetRangeFloatByInt(
-		calculatorModel.PercentInFrom,
-		calculatorModel.PercentInTo,
-		calculatorModel.PercentInStep,
+		request.PercentInFrom,
+		request.PercentInTo,
+		request.PercentInStep,
 	)
 
 	percentOutMin, percentOutMax, percentOutStep, percentOutAccuracy := services_helper.GetRangeFloatByInt(
-		calculatorModel.PercentOutFrom,
-		calculatorModel.PercentOutTo,
-		calculatorModel.PercentOutStep,
+		request.PercentOutFrom,
+		request.PercentOutTo,
+		request.PercentOutStep,
 	)
 
 	stopPercentMin, stopPercentMax, stopPercentStep, stopPercentAccuracy := services_helper.GetRangeFloatByInt(
-		calculatorModel.StopPercentFrom,
-		calculatorModel.StopPercentTo,
-		calculatorModel.StopPercentStep,
+		request.StopPercentFrom,
+		request.StopPercentTo,
+		request.StopPercentStep,
 	)
 
 	stopTimeOptions := []int64{-1}
 	stopPercentOptions := []int64{-1}
 
-	if calculatorModel.StopTime {
+	if request.StopTime {
 		stopTimeOptions = []int64{}
 
 		for _, value := range services_helper.GenerateRangeByStep(
-			calculatorModel.StopTimeFrom,
-			calculatorModel.StopTimeTo,
-			calculatorModel.StopTimeStep,
+			request.StopTimeFrom,
+			request.StopTimeTo,
+			request.StopTimeStep,
 		) {
 			stopTimeOptions = append(stopTimeOptions, value)
 		}
 	}
 
-	if calculatorModel.StopPercent {
+	if request.StopPercent {
 		stopPercentOptions = []int64{}
 
 		for _, value := range services_helper.GenerateRangeByStep(stopPercentMin, stopPercentMax, stopPercentStep) {
@@ -52,7 +51,7 @@ func loadGrid(calculatorModel *models_calculator_preset.CalculatorPresetModel) m
 		}
 	}
 
-	for _, bind := range calculatorModel.Bind {
+	for _, bind := range request.Bind {
 		for percentIn := percentInMin; percentIn <= percentInMax; percentIn += percentInStep {
 			for percentOut := percentOutMin; percentOut <= percentOutMax; percentOut += percentOutStep {
 				for _, stopTime := range stopTimeOptions {
@@ -83,7 +82,7 @@ func loadGrid(calculatorModel *models_calculator_preset.CalculatorPresetModel) m
 
 						iteration++
 
-						if iteration >= calculatorModel.Iterations {
+						if iteration >= request.Iterations {
 							return optimizations
 						}
 					}

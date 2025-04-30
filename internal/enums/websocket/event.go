@@ -8,4 +8,6 @@ const (
 	WebsocketEventCurrentPrice      WebsocketEvent = "currentPrice"
 	WebsocketEventCalculateProgress WebsocketEvent = "calculateProgress"
 	WebsocketEventCalculateResult   WebsocketEvent = "calculateResult"
+	WebsocketEventBotList           WebsocketEvent = "botList"
+	WebsocketEventBot               WebsocketEvent = "bot"
 )

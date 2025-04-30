@@ -2,6 +2,7 @@ package services_request
 
 import (
 	"backend/internal/enums"
+	enums_bot "backend/internal/enums/bot"
 	enums_calculate "backend/internal/enums/calculate"
 	enums_quote "backend/internal/enums/quote"
 	enums_symbol_list "backend/internal/enums/symbol_list"
@@ -67,6 +68,10 @@ func (object *requestServiceImplementation) init() {
 	}
 
 	if err := object.validate.RegisterValidation("execActive", enums.ExecActiveValidate); err != nil {
+		return
+	}
+
+	if err := object.validate.RegisterValidation("botStatus", enums_bot.StatusValidate); err != nil {
 		return
 	}
 }

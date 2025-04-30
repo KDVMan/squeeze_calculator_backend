@@ -3,60 +3,59 @@ package services_calculator_optimization
 import (
 	"backend/internal/enums"
 	models_calculator_optimization "backend/internal/models/calculator_optimization"
-	models_calculator_preset "backend/internal/models/calculator_preset"
 	services_helper "backend/pkg/services/helper"
 	"fmt"
 )
 
-func loadRandom(calculatorModel *models_calculator_preset.CalculatorPresetModel) map[string]*models_calculator_optimization.CalculatorOptimizationModel {
+func loadRandom(request *models_calculator_optimization.CalculatorOptimizationRequestModel) map[string]*models_calculator_optimization.CalculatorOptimizationModel {
 	optimizations := make(map[string]*models_calculator_optimization.CalculatorOptimizationModel)
 
-	for iteration := 0; iteration < calculatorModel.Iterations; iteration++ {
+	for iteration := 0; iteration < request.Iterations; iteration++ {
 		stopTimeCombinations := []int64{-1}
 		stopPercentCombinations := []float64{-1}
-		bind := enums.BindRandom(calculatorModel.Bind)
+		bind := enums.BindRandom(request.Bind)
 
 		percentIn := services_helper.GetRandomFloatByInt(
-			calculatorModel.PercentInFrom,
-			calculatorModel.PercentInTo,
-			calculatorModel.PercentInStep,
+			request.PercentInFrom,
+			request.PercentInTo,
+			request.PercentInStep,
 		)
 
 		percentOut := services_helper.GetRandomFloatByInt(
-			calculatorModel.PercentOutFrom,
-			calculatorModel.PercentOutTo,
-			calculatorModel.PercentOutStep,
+			request.PercentOutFrom,
+			request.PercentOutTo,
+			request.PercentOutStep,
 		)
 
-		if calculatorModel.StopTime && calculatorModel.StopPercent {
+		if request.StopTime && request.StopPercent {
 			stopTime := services_helper.GetRandomInt(
-				calculatorModel.StopTimeFrom,
-				calculatorModel.StopTimeTo,
-				calculatorModel.StopTimeStep,
+				request.StopTimeFrom,
+				request.StopTimeTo,
+				request.StopTimeStep,
 			)
 
 			stopTimeCombinations = append(stopTimeCombinations, stopTime*60*1000)
 
 			stopPercent := services_helper.GetRandomFloatByInt(
-				calculatorModel.StopPercentFrom,
-				calculatorModel.StopPercentTo,
-				calculatorModel.StopPercentStep,
+				request.StopPercentFrom,
+				request.StopPercentTo,
+				request.StopPercentStep,
 			)
 
 			stopPercentCombinations = append(stopPercentCombinations, stopPercent)
-		} else if calculatorModel.StopTime {
+		} else if request.StopTime {
 			stopTime := services_helper.GetRandomInt(
-				calculatorModel.StopTimeFrom,
-				calculatorModel.StopTimeTo,
-				calculatorModel.StopTimeStep,
+				request.StopTimeFrom,
+				request.StopTimeTo,
+				request.StopTimeStep,
 			)
 
 			stopTimeCombinations = append(stopTimeCombinations, stopTime*60*1000)
-		} else if calculatorModel.StopPercent {
+		} else if request.StopPercent {
 			stopPercent := services_helper.GetRandomFloatByInt(
-				calculatorModel.StopPercentFrom,
-				calculatorModel.StopPercentTo,
-				calculatorModel.StopPercentStep,
+				request.StopPercentFrom,
+				request.StopPercentTo,
+				request.StopPercentStep,
 			)
 
 			stopPercentCombinations = append(stopPercentCombinations, stopPercent)

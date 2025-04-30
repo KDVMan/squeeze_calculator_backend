@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (object *calculatorServiceImplementation) Update(request *models_calculator.CalculateRequestModel) (*models_calculator_preset.CalculatorPresetModel, error) {
+func (object *calculatorServiceImplementation) Update(request *models_calculator.CalculatorRequestModel) (*models_calculator_preset.CalculatorPresetModel, error) {
 	var presetModel models_calculator_preset.CalculatorPresetModel
 
 	if err := object.storageService().DB().First(&presetModel, request.ID).Error; err != nil {

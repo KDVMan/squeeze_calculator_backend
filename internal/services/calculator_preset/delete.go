@@ -11,5 +11,5 @@ func (object *calculatorPresetServiceImplementation) Delete(
 		return nil, err
 	}
 
-	return object.Load()
+	return object.LoadAll()
 }

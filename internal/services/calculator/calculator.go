@@ -16,7 +16,7 @@ import (
 	"sync"
 )
 
-func (object *calculatorServiceImplementation) Calculate(request *models_calculator.CalculateRequestModel) error {
+func (object *calculatorServiceImplementation) Calculator(request *models_calculator.CalculatorRequestModel) error {
 	var wg sync.WaitGroup
 	object.calculateSymbol = request.Symbol
 	object.calculateResult = nil
@@ -32,7 +32,26 @@ func (object *calculatorServiceImplementation) Calculate(request *models_calcula
 		return fmt.Errorf("failed to update calculatorModel: %w", err)
 	}
 
-	optimizations := services_calculator_optimization.Load(calculatorModel)
+	optimizations := services_calculator_optimization.Load(&models_calculator_optimization.CalculatorOptimizationRequestModel{
+		Bind:            calculatorModel.Bind,
+		PercentInFrom:   calculatorModel.PercentInFrom,
+		PercentInTo:     calculatorModel.PercentInTo,
+		PercentInStep:   calculatorModel.PercentInStep,
+		PercentOutFrom:  calculatorModel.PercentOutFrom,
+		PercentOutTo:    calculatorModel.PercentOutTo,
+		PercentOutStep:  calculatorModel.PercentOutStep,
+		StopTime:        calculatorModel.StopTime,
+		StopTimeFrom:    calculatorModel.StopTimeFrom,
+		StopTimeTo:      calculatorModel.StopTimeTo,
+		StopTimeStep:    calculatorModel.StopTimeStep,
+		StopPercent:     calculatorModel.StopPercent,
+		StopPercentFrom: calculatorModel.StopPercentFrom,
+		StopPercentTo:   calculatorModel.StopPercentTo,
+		StopPercentStep: calculatorModel.StopPercentStep,
+		Algorithm:       calculatorModel.Algorithm,
+		Iterations:      calculatorModel.Iterations,
+	})
+
 	quoteRange := models_quote.GetRange(int64(object.configService().GetConfig().Binance.FuturesLimit), timeFrom, request.TimeTo, enums.IntervalMilliseconds(enums.Interval1m))
 
 	progressModel := &models_websocket.ProgressChannelModel{
@@ -50,7 +69,7 @@ func (object *calculatorServiceImplementation) Calculate(request *models_calcula
 	}
 
 	if request.TradeDirection == enums.TradeDirectionShort {
-		quotes = models_quote.Invert(quotes)
+		quotes = models_quote.InvertAll(quotes)
 	}
 
 	threadsResults := make(chan *models_calculate.CalculateResultModel, len(optimizations))

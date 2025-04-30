@@ -39,5 +39,5 @@ func (object *calculatorPresetServiceImplementation) Add(
 		return nil, err
 	}
 
-	return object.Load()
+	return object.LoadAll()
 }

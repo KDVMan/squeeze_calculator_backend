@@ -12,11 +12,7 @@ func (object *ProviderService) ExchangeWebsocketService() services_interface_exc
 			object.SymbolService,
 			object.ExchangeService,
 			object.QuoteService,
-			// object.QuoteRepositoryService,
-			// object.UserService,
-			// object.OrderService,
-			// object.BotService,
-			// object.DumpService,
+			object.QuoteRepositoryService,
 		)
 	}
 

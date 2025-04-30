@@ -1,14 +1,14 @@
-package routes_calculator
+package routes_bot
 
 import (
-	models_calculator "backend/internal/models/calculator"
+	models_bot "backend/internal/models/bot"
 	"github.com/go-chi/render"
 	"net/http"
 )
 
-func (object *calculatorRouteImplementation) calculate() http.HandlerFunc {
+func (object *botRouteImplementation) updateStatus() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var request models_calculator.CalculatorRequestModel
+		var request models_bot.UpdateStatusRequestModel
 
 		if err := object.requestService().Decode(w, r, &request); err != nil {
 			return
@@ -18,8 +18,8 @@ func (object *calculatorRouteImplementation) calculate() http.HandlerFunc {
 			return
 		}
 
-		if err := object.calculatorService().Calculator(&request); err != nil {
-			var message = "failed to calculate"
+		if err := object.botService().UpdateStatus(&request); err != nil {
+			message := "failed to update bot status"
 			object.loggerService().Error().Printf("%s: %v", message, err)
 
 			render.Status(r, http.StatusInternalServerError)

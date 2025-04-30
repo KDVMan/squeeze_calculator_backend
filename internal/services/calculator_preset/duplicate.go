@@ -42,5 +42,5 @@ func (object *calculatorPresetServiceImplementation) Duplicate(
 		return nil, err
 	}
 
-	return object.Load()
+	return object.LoadAll()
 }

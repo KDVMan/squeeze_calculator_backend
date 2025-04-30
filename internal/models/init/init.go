@@ -34,7 +34,7 @@ func LoadDefault() *InitModel {
 		CalculateLimit:         1000,
 		CalculateSortColumn:    enums_calculate.SortColumnScore,
 		CalculateSortDirection: enums.SortDirectionDesc,
-		ExecActive:             enums.ExecActiveBot,
+		ExecActive:             enums.ExecActiveBotList,
 	}
 }
 

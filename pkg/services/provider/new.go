@@ -20,6 +20,7 @@ import (
 	services_interface_exchange_websocket "backend/internal/services/exchange_websocket/interface"
 	services_interface_init "backend/internal/services/init/interface"
 	services_interface_quote "backend/internal/services/quote/interface"
+	services_interface_quote_repository "backend/internal/services/quote_repository/interface"
 	services_interface_symbol "backend/internal/services/symbol/interface"
 	services_interface_symbol_list "backend/internal/services/symbol_list/interface"
 	services_interface_websocket "backend/internal/services/websocket/interface"
@@ -69,6 +70,7 @@ type ProviderService struct {
 	calculatorPresetService        services_interface_calculator_preset.CalculatorPresetService
 	calculatorFormulaPresetService services_interface_calculator_formula_preset.CalculatorFormulaPresetService
 	botService                     services_interface_bot.BotService
+	quoteRepositoryService         services_interface_quote_repository.QuoteRepositoryService
 }
 
 func NewProviderService(parentCtx context.Context) *ProviderService {

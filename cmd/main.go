@@ -29,16 +29,13 @@ func main() {
 }
 
 func run(providerService *services_provider.ProviderService, parentCtx context.Context, parentCancelCtx context.CancelFunc) error {
-	// if err := providerService.TradeService().Init(); err != nil {
-	// 	providerService.LoggerService().Error().Fatalf("failed to init trades: %v", err)
-	// }
-
 	providerService.LoggerService().Info().Printf("starting server: %s", providerService.ConfigService().GetConfig().HttpServer.Address)
 
-	// go providerService.BotService().RunAddDealChannel()
-	// go providerService.OrderService().RunOrderChannel()
-	// go providerService.BotService().RunDealChannel()
-	// go providerService.BotService().RunChannel()
+	providerService.BotService().Init()
+
+	go providerService.BotService().CalculateChannel()
+	go providerService.BotService().CalculatorChannel()
+	go providerService.BotService().RunChannel()
 	go providerService.WebsocketService().Start()
 	go providerService.ExchangeWebsocketService().Start()
 

@@ -40,5 +40,5 @@ func (object *calculatorPresetServiceImplementation) Edit(
 		return nil, err
 	}
 
-	return object.Load()
+	return object.LoadAll()
 }

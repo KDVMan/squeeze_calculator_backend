@@ -7,7 +7,7 @@ import (
 )
 
 type CalculatorService interface {
-	Update(*models_calculator.CalculateRequestModel) (*models_calculator_preset.CalculatorPresetModel, error)
-	Calculate(*models_calculator.CalculateRequestModel) error
+	Update(*models_calculator.CalculatorRequestModel) (*models_calculator_preset.CalculatorPresetModel, error)
+	Calculator(*models_calculator.CalculatorRequestModel) error
 	LoadResult(string) []*models_calculate.CalculateResultModel
 }

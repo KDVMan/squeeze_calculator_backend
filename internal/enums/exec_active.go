@@ -5,7 +5,7 @@ import "github.com/go-playground/validator/v10"
 type ExecActive string
 
 const (
-	ExecActiveBot       ExecActive = "bot"
+	ExecActiveBotList   ExecActive = "botList"
 	ExecActiveCalculate ExecActive = "calculate"
 )
 
@@ -19,7 +19,7 @@ func ExecActiveValidate(field validator.FieldLevel) bool {
 
 func (enum ExecActive) ExecActiveValid() bool {
 	switch enum {
-	case ExecActiveBot, ExecActiveCalculate:
+	case ExecActiveBotList, ExecActiveCalculate:
 		return true
 	default:
 		return false

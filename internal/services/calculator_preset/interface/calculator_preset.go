@@ -5,8 +5,9 @@ import (
 )
 
 type CalculatorPresetService interface {
-	Load() ([]*models_calculator_preset.CalculatorPresetModel, error)
+	LoadAll() ([]*models_calculator_preset.CalculatorPresetModel, error)
 	LoadSelected() (*models_calculator_preset.CalculatorPresetModel, error)
+	LoadByID(uint) *models_calculator_preset.CalculatorPresetModel
 	Add(*models_calculator_preset.AddRequestModel) ([]*models_calculator_preset.CalculatorPresetModel, error)
 	Edit(*models_calculator_preset.EditRequestModel) ([]*models_calculator_preset.CalculatorPresetModel, error)
 	Duplicate(*models_calculator_preset.DuplicateRequestModel) ([]*models_calculator_preset.CalculatorPresetModel, error)
