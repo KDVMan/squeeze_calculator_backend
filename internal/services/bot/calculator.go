@@ -16,6 +16,8 @@ import (
 
 func (object *botServiceImplementation) CalculatorChannel() {
 	for request := range object.calculatorChannel {
+		object.calculatorStop.Store(false)
+
 		stopChannel, exists := object.stopChannels[request.BotID]
 		if !exists {
 			continue
@@ -63,9 +65,12 @@ func (object *botServiceImplementation) CalculatorChannel() {
 		for i := 0; i < threads; i++ {
 			go func() {
 				defer wg.Done()
+
 				for j := range jobs {
 					select {
 					case <-stopChannel:
+						log.Println("STOP 1")
+						object.calculatorStop.Store(true)
 						return
 					default:
 					}
@@ -73,7 +78,14 @@ func (object *botServiceImplementation) CalculatorChannel() {
 					calculateService := services_calculate.NewCalculateService(j.param, quotes, request.TickSize, object.futuresCommission)
 
 					if currentResult := calculateService.Calculate(); currentResult != nil {
-						resultsChannel <- currentResult
+						select {
+						case <-stopChannel:
+							log.Println("STOP 2")
+							object.calculatorStop.Store(true)
+							return
+						default:
+							resultsChannel <- currentResult
+						}
 					}
 				}
 			}()
@@ -81,6 +93,15 @@ func (object *botServiceImplementation) CalculatorChannel() {
 
 		go func() {
 			for _, optimization := range optimizations {
+				select {
+				case <-stopChannel:
+					log.Println("STOP 3")
+					object.calculatorStop.Store(true)
+					close(jobs)
+					return
+				default:
+				}
+
 				jobs <- job{
 					&models_calculate.ParamModel{
 						TradeDirection: request.TradeDirection,
@@ -96,6 +117,15 @@ func (object *botServiceImplementation) CalculatorChannel() {
 			}
 
 			if request.Param.PercentIn > 0 {
+				select {
+				case <-stopChannel:
+					log.Println("STOP 4")
+					object.calculatorStop.Store(true)
+					close(jobs)
+					return
+				default:
+				}
+
 				jobs <- job{
 					&models_calculate.ParamModel{
 						TradeDirection: request.TradeDirection,
@@ -119,6 +149,10 @@ func (object *botServiceImplementation) CalculatorChannel() {
 		}()
 
 		for calculateResult := range resultsChannel {
+			if object.calculatorStop.Load() {
+				break
+			}
+
 			if models_calculator_formula_preset.ApplyFilters(calculateResult, request.Filters) {
 				results = append(results, calculateResult)
 				services_calculator.UpdateValueRanges(calculateResult, ranges)
@@ -126,203 +160,66 @@ func (object *botServiceImplementation) CalculatorChannel() {
 		}
 
 		for _, result := range results {
+			if object.calculatorStop.Load() {
+				break
+			}
+
 			result.Score = models_calculator_formula_preset.ApplyFormula(result, request.Formulas, ranges)
 		}
 
-		sort.Slice(results, func(i, j int) bool {
-			return results[i].Score > results[j].Score
-		})
+		if object.calculatorStop.Load() == false {
+			sort.Slice(results, func(i, j int) bool {
+				return results[i].Score > results[j].Score
+			})
 
-		if len(results) > 0 {
-			var controlResult *models_calculate.CalculateResultModel
+			if len(results) > 0 {
+				var controlResult *models_calculate.CalculateResultModel
 
-			for _, r := range results {
-				if r.ParamModel.IsCurrent {
-					controlResult = r
-					break
+				for _, r := range results {
+					if r.ParamModel.IsCurrent {
+						controlResult = r
+						break
+					}
+				}
+
+				best := results[0]
+
+				if controlResult == nil || controlResult.Score < best.Score {
+					// if controlResult != nil {
+					// 	log.Printf(
+					// 		"CONTROL, symbol: %s, direction: %s, "+
+					// 			"score: %.20f -> %.20f, "+
+					// 			"profit: %.2f -> %.2f, "+
+					// 			"bind: %v -> %v, "+
+					// 			"in: %.2f -> %.2f, "+
+					// 			"out: %.2f -> %.2f, "+
+					// 			"stopTime: %v -> %v, "+
+					// 			"stopPercent: %.2f -> %.2f, "+
+					// 			"current: %v -> %v\n\n",
+					// 		request.Symbol,
+					// 		request.TradeDirection,
+					// 		controlResult.Score, best.Score,
+					// 		controlResult.TotalCumulativeProfitPercent, best.TotalCumulativeProfitPercent,
+					// 		controlResult.ParamModel.Bind, best.ParamModel.Bind,
+					// 		controlResult.ParamModel.PercentIn, best.ParamModel.PercentIn,
+					// 		controlResult.ParamModel.PercentOut, best.ParamModel.PercentOut,
+					// 		controlResult.ParamModel.StopTime, best.ParamModel.StopTime,
+					// 		controlResult.ParamModel.StopPercent, best.ParamModel.StopPercent,
+					// 		controlResult.ParamModel.IsCurrent, best.ParamModel.IsCurrent,
+					// 	)
+					// }
+
+					object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
+						CalculatorRequestModel: request,
+						Result:                 best,
+					}
 				}
 			}
 
-			best := results[0]
-
-			if controlResult == nil || controlResult.Score < best.Score {
-				if controlResult != nil {
-					log.Printf(
-						"CONTROL, symbol: %s, direction: %s, "+
-							"score: %.20f -> %.20f, "+
-							"profit: %.2f -> %.2f, "+
-							"bind: %v -> %v, "+
-							"in: %.2f -> %.2f, "+
-							"out: %.2f -> %.2f, "+
-							"stopTime: %v -> %v, "+
-							"stopPercent: %.2f -> %.2f, "+
-							"current: %v -> %v\n\n",
-						request.Symbol,
-						request.TradeDirection,
-						controlResult.Score, best.Score,
-						controlResult.TotalCumulativeProfitPercent, best.TotalCumulativeProfitPercent,
-						controlResult.ParamModel.Bind, best.ParamModel.Bind,
-						controlResult.ParamModel.PercentIn, best.ParamModel.PercentIn,
-						controlResult.ParamModel.PercentOut, best.ParamModel.PercentOut,
-						controlResult.ParamModel.StopTime, best.ParamModel.StopTime,
-						controlResult.ParamModel.StopPercent, best.ParamModel.StopPercent,
-						controlResult.ParamModel.IsCurrent, best.ParamModel.IsCurrent,
-					)
-				}
-
-				object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
-					CalculatorRequestModel: request,
-					Result:                 best,
-				}
-			}
+			object.GetCalculatorChannel() <- request
 		}
-
-		object.GetCalculatorChannel() <- request
 	}
 }
-
-// func (object *botServiceImplementation) CalculatorChannel() {
-// 	for request := range object.calculatorChannel {
-// 		stopChannel, exists := object.stopChannels[request.BotID]
-// 		if !exists {
-// 			continue
-// 		}
-//
-// 		var calculateResults []*models_calculate.CalculateResultModel
-// 		var results []*models_calculate.CalculateResultModel
-// 		ranges := make(map[string][2]float64)
-//
-// 		quotes := object.quoteRepositoryService().GetBySymbol(request.Symbol, request.TradeDirection)
-// 		if len(quotes) == 0 {
-// 			continue
-// 		}
-//
-// 		optimizations := services_calculator_optimization.Load(&models_calculator_optimization.CalculatorOptimizationRequestModel{
-// 			Bind:            request.Bind,
-// 			PercentInFrom:   request.PercentInFrom,
-// 			PercentInTo:     request.PercentInTo,
-// 			PercentInStep:   request.PercentInStep,
-// 			PercentOutFrom:  request.PercentOutFrom,
-// 			PercentOutTo:    request.PercentOutTo,
-// 			PercentOutStep:  request.PercentOutStep,
-// 			StopTime:        request.StopTime,
-// 			StopTimeFrom:    request.StopTimeFrom,
-// 			StopTimeTo:      request.StopTimeTo,
-// 			StopTimeStep:    request.StopTimeStep,
-// 			StopPercent:     request.StopPercent,
-// 			StopPercentFrom: request.StopPercentFrom,
-// 			StopPercentTo:   request.StopPercentTo,
-// 			StopPercentStep: request.StopPercentStep,
-// 			Algorithm:       request.Algorithm,
-// 			Iterations:      request.Iterations,
-// 		})
-//
-// 		for _, optimization := range optimizations {
-// 			select {
-// 			case <-stopChannel:
-// 				continue
-// 			default:
-// 			}
-//
-// 			paramModel := &models_calculate.ParamModel{
-// 				TradeDirection: request.TradeDirection,
-// 				Interval:       request.Interval,
-// 				Bind:           optimization.Bind,
-// 				PercentIn:      optimization.PercentIn,
-// 				PercentOut:     optimization.PercentOut,
-// 				StopTime:       optimization.StopTime,
-// 				StopPercent:    optimization.StopPercent,
-// 				IsCurrent:      false,
-// 			}
-//
-// 			calculateService := services_calculate.NewCalculateService(paramModel, quotes, request.TickSize, object.futuresCommission)
-// 			currentResult := calculateService.Calculate()
-//
-// 			if currentResult != nil {
-// 				calculateResults = append(calculateResults, currentResult)
-// 			}
-// 		}
-//
-// 		if request.Param.PercentIn > 0 {
-// 			currentParam := &models_calculate.ParamModel{
-// 				TradeDirection: request.TradeDirection,
-// 				Interval:       request.Interval,
-// 				Bind:           request.Param.Bind,
-// 				PercentIn:      request.Param.PercentIn,
-// 				PercentOut:     request.Param.PercentOut,
-// 				StopTime:       request.Param.StopTime,
-// 				StopPercent:    request.Param.StopPercent,
-// 				IsCurrent:      true,
-// 			}
-//
-// 			calculateService := services_calculate.NewCalculateService(currentParam, quotes, request.TickSize, object.futuresCommission)
-// 			currentResult := calculateService.Calculate()
-//
-// 			if currentResult != nil {
-// 				calculateResults = append(calculateResults, currentResult)
-// 			}
-// 		}
-//
-// 		for _, calculateResult := range calculateResults {
-// 			if models_calculator_formula_preset.ApplyFilters(calculateResult, request.Filters) {
-// 				results = append(results, calculateResult)
-// 				services_calculator.UpdateValueRanges(calculateResult, ranges)
-// 			}
-// 		}
-//
-// 		for _, result := range results {
-// 			result.Score = models_calculator_formula_preset.ApplyFormula(result, request.Formulas, ranges)
-// 		}
-//
-// 		sort.Slice(results, func(i, j int) bool {
-// 			return results[i].Score > results[j].Score
-// 		})
-//
-// 		if len(results) > 0 {
-// 			var controlResult *models_calculate.CalculateResultModel
-//
-// 			for _, r := range results {
-// 				if r.ParamModel.IsCurrent {
-// 					controlResult = r
-// 					break
-// 				}
-// 			}
-//
-// 			best := results[0]
-//
-// 			if controlResult == nil || controlResult.Score < best.Score {
-// 				if controlResult != nil {
-// 					log.Printf(
-// 						"CONTROL, "+
-// 							"score: %.20f -> %.20f, "+
-// 							"profit: %.2f -> %.2f, "+
-// 							"bind: %v -> %v, "+
-// 							"in: %.2f -> %.2f, "+
-// 							"out: %.2f -> %.2f, "+
-// 							"stopTime: %v -> %v, "+
-// 							"stopPercent: %.2f -> %.2f, "+
-// 							"current: %v -> %v\n\n",
-// 						controlResult.Score, best.Score,
-// 						controlResult.TotalCumulativeProfitPercent, best.TotalCumulativeProfitPercent,
-// 						controlResult.ParamModel.Bind, best.ParamModel.Bind,
-// 						controlResult.ParamModel.PercentIn, best.ParamModel.PercentIn,
-// 						controlResult.ParamModel.PercentOut, best.ParamModel.PercentOut,
-// 						controlResult.ParamModel.StopTime, best.ParamModel.StopTime,
-// 						controlResult.ParamModel.StopPercent, best.ParamModel.StopPercent,
-// 						controlResult.ParamModel.IsCurrent, best.ParamModel.IsCurrent,
-// 					)
-// 				}
-//
-// 				object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
-// 					CalculatorRequestModel: request,
-// 					Result:                 best,
-// 				}
-// 			}
-// 		}
-//
-// 		object.GetCalculatorChannel() <- request
-// 	}
-// }
 
 func (object *botServiceImplementation) GetCalculatorChannel() chan *models_bot.CalculatorRequestModel {
 	return object.calculatorChannel

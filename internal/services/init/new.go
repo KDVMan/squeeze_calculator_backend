@@ -1,6 +1,7 @@
 package services_init
 
 import (
+	services_interface_bot "backend/internal/services/bot/interface"
 	services_interface_calculator "backend/internal/services/calculator/interface"
 	services_interface_init "backend/internal/services/init/interface"
 	services_interface_symbol "backend/internal/services/symbol/interface"
@@ -13,7 +14,7 @@ type initServiceImplementation struct {
 	websocketService  func() services_interface_websocket.WebsocketService
 	symbolService     func() services_interface_symbol.SymbolService
 	calculatorService func() services_interface_calculator.CalculatorService
-	// calculatorPresetService func() services_calculator_preset_interface.CalculatorPresetService
+	botService        func() services_interface_bot.BotService
 }
 
 func NewInitService(
@@ -21,13 +22,13 @@ func NewInitService(
 	websocketService func() services_interface_websocket.WebsocketService,
 	symbolService func() services_interface_symbol.SymbolService,
 	calculatorService func() services_interface_calculator.CalculatorService,
-	// calculatorPresetService func() services_calculator_preset_interface.CalculatorPresetService,
+	botService func() services_interface_bot.BotService,
 ) services_interface_init.InitService {
 	return &initServiceImplementation{
 		storageService:    storageService,
 		websocketService:  websocketService,
 		symbolService:     symbolService,
 		calculatorService: calculatorService,
-		// calculatorPresetService: calculatorPresetService,
+		botService:        botService,
 	}
 }

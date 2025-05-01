@@ -19,7 +19,8 @@ func GetCpu(minus int) int {
 		threads = 1
 	}
 
-	return threads
+	return 2
+	// return threads
 }
 
 func MustConvertStringToFloat64(value string) float64 {

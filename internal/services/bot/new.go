@@ -15,10 +15,12 @@ import (
 	services_interface_dump "backend/pkg/services/dump/interface"
 	services_interface_logger "backend/pkg/services/logger/interface"
 	services_interface_storage "backend/pkg/services/storage/interface"
+	"sync/atomic"
 )
 
 type botServiceImplementation struct {
 	loggerService                  func() services_interface_logger.LoggerService
+	configService                  func() services_interface_config.ConfigService
 	storageService                 func() services_interface_storage.StorageService
 	websocketService               func() services_interface_websocket.WebsocketService
 	dumpService                    func() services_interface_dump.DumpService
@@ -34,6 +36,8 @@ type botServiceImplementation struct {
 	calculatorChannel              chan *models_bot.CalculatorRequestModel
 	calculateChannel               chan *models_bot.CalculateRequestModel
 	stopChannels                   map[uint]chan struct{}
+	calculatorStop                 atomic.Bool
+	retryApiChannel                chan uint
 }
 
 func NewBotService(
@@ -49,8 +53,9 @@ func NewBotService(
 	quoteRepositoryService func() services_interface_quote_repository.QuoteRepositoryService,
 	exchangeWebsocketService func() services_interface_exchange_websocket.ExchangeWebSocketService,
 ) services_interface_bot.BotService {
-	return &botServiceImplementation{
+	service := &botServiceImplementation{
 		loggerService:                  loggerService,
+		configService:                  configService,
 		storageService:                 storageService,
 		websocketService:               websocketService,
 		dumpService:                    dumpService,
@@ -66,7 +71,12 @@ func NewBotService(
 		calculatorChannel:              make(chan *models_bot.CalculatorRequestModel, 10000),
 		calculateChannel:               make(chan *models_bot.CalculateRequestModel, 10000),
 		stopChannels:                   make(map[uint]chan struct{}),
+		retryApiChannel:                make(chan uint, 1000),
 	}
+
+	go service.retryApi()
+
+	return service
 }
 
 func (object *botServiceImplementation) StopBot(botModel *models_bot.BotModel) {

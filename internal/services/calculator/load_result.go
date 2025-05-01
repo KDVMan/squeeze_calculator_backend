@@ -4,6 +4,7 @@ import (
 	"backend/internal/enums"
 	models_calculate "backend/internal/models/calculate"
 	models_calculator_formula_preset "backend/internal/models/calculator_formula_preset"
+	"log"
 	"sort"
 )
 
@@ -29,6 +30,8 @@ func (object *calculatorServiceImplementation) LoadResult(symbol string) []*mode
 		return results
 	}
 
+	log.Printf("before, limit: %d, total: %d", initModel.CalculateLimit, len(object.calculateResult))
+
 	for _, calculateResult := range object.calculateResult {
 		if models_calculator_formula_preset.ApplyFilters(calculateResult, preset.Filters) {
 			results = append(results, calculateResult)
@@ -36,9 +39,13 @@ func (object *calculatorServiceImplementation) LoadResult(symbol string) []*mode
 		}
 	}
 
+	log.Printf("after filter, total: %d", len(results))
+
 	for _, result := range results {
 		result.Score = models_calculator_formula_preset.ApplyFormula(result, preset.Formulas, ranges)
 	}
+
+	log.Printf("after formula, total: %d", len(results))
 
 	sort.Slice(results, func(i, j int) bool {
 		a := results[i].GetFieldValue(initModel.CalculateSortColumn.String())
@@ -51,9 +58,13 @@ func (object *calculatorServiceImplementation) LoadResult(symbol string) []*mode
 		return a < b
 	})
 
+	log.Printf("after sort, total: %d", len(results))
+
 	if len(results) > initModel.CalculateLimit {
 		results = results[:initModel.CalculateLimit]
 	}
+
+	log.Printf("after slice, total: %d", len(results))
 
 	return results
 }

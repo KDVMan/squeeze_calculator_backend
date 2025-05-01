@@ -8,6 +8,7 @@ import (
 func (object *ProviderService) CalculatorFormulaPresetService() services_interface_calculator_formula_preset.CalculatorFormulaPresetService {
 	if object.calculatorFormulaPresetService == nil {
 		object.calculatorFormulaPresetService = services_calculator_formula_preset.NewCalculatorFormulaPresetService(
+			object.LoggerService,
 			object.ConfigService,
 			object.StorageService,
 			object.WebsocketService,

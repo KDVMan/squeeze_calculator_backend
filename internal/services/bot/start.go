@@ -26,12 +26,9 @@ func (object *botServiceImplementation) Start(request *models_bot.StartRequestMo
 	}
 
 	hash := services_helper.MustConvertStringToMd5(fmt.Sprintf(
-		"hash | calculatorPresetModel:%d | calculatorFormulaPresetModel:%d | window:%d | direction:%s |  interval:%s | symbol:%s | ",
+		"hash | calculatorPresetModel:%d | calculatorFormulaPresetModel:%d | symbol:%s | ",
 		calculatorPresetModel.ID,
 		calculatorFormulaPresetModel.ID,
-		calculatorPresetModel.Window,
-		calculatorPresetModel.TradeDirection,
-		calculatorPresetModel.Interval,
 		request.Symbol,
 	))
 

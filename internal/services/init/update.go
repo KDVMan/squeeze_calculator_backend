@@ -1,6 +1,7 @@
 package services_init
 
 import (
+	"backend/internal/enums"
 	enums_symbol "backend/internal/enums/symbol"
 	enums_websocket "backend/internal/enums/websocket"
 	models_init "backend/internal/models/init"
@@ -31,9 +32,16 @@ func (object *initServiceImplementation) Update(request *models_init.UpdateReque
 		return nil, err
 	}
 
-	object.websocketService().GetBroadcastChannel() <- &models_websocket.BroadcastChannelModel{
-		Event: enums_websocket.WebsocketEventCalculateResult,
-		Data:  object.calculatorService().LoadResult(request.Symbol),
+	if initModel.ExecActive == enums.ExecActiveCalculate {
+		object.websocketService().GetBroadcastChannel() <- &models_websocket.BroadcastChannelModel{
+			Event: enums_websocket.WebsocketEventCalculateResult,
+			Data:  object.calculatorService().LoadResult(request.Symbol),
+		}
+	} else if initModel.ExecActive == enums.ExecActiveBotList {
+		object.websocketService().GetBroadcastChannel() <- &models_websocket.BroadcastChannelModel{
+			Event: enums_websocket.WebsocketEventBotList,
+			Data:  object.botService().LoadAll(),
+		}
 	}
 
 	return initModel, nil

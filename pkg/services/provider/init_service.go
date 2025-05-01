@@ -12,6 +12,7 @@ func (object *ProviderService) InitService() services_interface_init.InitService
 			object.WebsocketService,
 			object.SymbolService,
 			object.CalculatorService,
+			object.BotService,
 		)
 	}
 

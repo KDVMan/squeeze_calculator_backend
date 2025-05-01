@@ -17,4 +17,5 @@ type BotService interface {
 	CalculateChannel()
 	GetCalculateChannel() chan *models_bot.CalculateRequestModel
 	StopBot(*models_bot.BotModel)
+	Update(*models_bot.UpdateRequestModel) error
 }
