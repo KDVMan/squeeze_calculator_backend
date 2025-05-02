@@ -38,6 +38,7 @@ func (object *botServiceImplementation) RunChannel() {
 		object.GetCalculatorChannel() <- &models_bot.CalculatorRequestModel{
 			BotID:           botModel.ID,
 			Symbol:          botModel.Symbol,
+			Window:          botModel.Window,
 			TradeDirection:  botModel.TradeDirection,
 			Interval:        botModel.Interval,
 			Bind:            botModel.Bind,
@@ -58,9 +59,11 @@ func (object *botServiceImplementation) RunChannel() {
 			Algorithm:       botModel.Algorithm,
 			Iterations:      10000,
 			TickSize:        botModel.TickSize,
+			MinAmount:       botModel.MinAmount,
 			Filters:         botModel.Filters,
 			Formulas:        botModel.Formulas,
 			Param:           botModel.Param,
+			CanSendParam:    true,
 		}
 	}
 }

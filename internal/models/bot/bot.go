@@ -41,6 +41,7 @@ type BotModel struct {
 	Formulas                  []models_calculator_formula_preset.FormulaModel `gorm:"-" json:"formulas"`
 	FormulasJson              string                                          `json:"-"`
 	TickSize                  float64                                         `json:"tickSize"`
+	MinAmount                 float64                                         `json:"minAmount"`
 	Param                     ParamModel                                      `gorm:"embedded;embeddedPrefix:param_" json:"param"`
 	ApiSend                   bool                                            `json:"apiSend"`
 }

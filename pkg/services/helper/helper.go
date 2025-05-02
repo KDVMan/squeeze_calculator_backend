@@ -19,7 +19,7 @@ func GetCpu(minus int) int {
 		threads = 1
 	}
 
-	return 2
+	return 3
 	// return threads
 }
 

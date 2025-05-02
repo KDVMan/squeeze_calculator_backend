@@ -8,7 +8,8 @@ import (
 
 type SymbolService interface {
 	Load(string, enums_symbol.SymbolStatus) (*models_symbol.SymbolModel, error)
-	LoadAll() (*[]models_symbol.SymbolModel, error)
+	LoadAll() ([]*models_symbol.SymbolModel, error)
+	LoadByVolume(int, string) ([]*models_symbol.SymbolModel, error)
 	LoadGroups() ([]string, error)
 	Download([]futures.Symbol) error
 	UpdateStatistic([]*futures.WsMarketTickerEvent) error

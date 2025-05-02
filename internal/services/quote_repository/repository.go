@@ -45,7 +45,7 @@ func (object *quoteRepositoryServiceImplementation) UpdateQuote(symbol string, i
 		longQuotesModels[totalLongLen-1].IsClosed = true
 		shortQuotesModels[len(shortQuotesModels)-1].IsClosed = true
 
-		if len(longQuotesModels) >= 45000 {
+		if len(longQuotesModels) >= 1440 {
 			longQuotesModels = longQuotesModels[1:]
 			shortQuotesModels = shortQuotesModels[1:]
 		}
@@ -127,6 +127,31 @@ func (object *quoteRepositoryServiceImplementation) GetBySymbol(symbol string, t
 	}
 
 	return nil
+}
+
+func (object *quoteRepositoryServiceImplementation) GetWindowBySymbol(symbol string, tradeDirection enums.TradeDirection, window int) []*models_quote.QuoteModel {
+	object.mutex.Lock()
+	defer object.mutex.Unlock()
+
+	var data []*models_quote.QuoteModel
+	if tradeDirection == enums.TradeDirectionLong {
+		data = object.longData[symbol]
+	} else if tradeDirection == enums.TradeDirectionShort {
+		data = object.shortData[symbol]
+	}
+
+	if len(data) == 0 || window <= 0 {
+		return nil
+	}
+
+	if len(data) < window {
+		window = len(data)
+	}
+
+	result := make([]*models_quote.QuoteModel, window)
+	copy(result, data[len(data)-window:])
+
+	return result
 }
 
 func (object *quoteRepositoryServiceImplementation) Remove(symbol string) {

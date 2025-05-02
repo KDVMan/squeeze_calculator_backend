@@ -8,6 +8,7 @@ import (
 type CalculatorRequestModel struct {
 	BotID           uint
 	Symbol          string
+	Window          int64
 	TradeDirection  enums.TradeDirection
 	Interval        enums.Interval
 	Bind            []enums.Bind
@@ -28,7 +29,9 @@ type CalculatorRequestModel struct {
 	Algorithm       enums.Algorithm
 	Iterations      int
 	TickSize        float64
+	MinAmount       float64
 	Filters         []models_calculator_formula_preset.FilterModel
 	Formulas        []models_calculator_formula_preset.FormulaModel `gorm:"-" json:"formulas"`
 	Param           ParamModel
+	CanSendParam    bool
 }

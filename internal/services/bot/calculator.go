@@ -9,7 +9,6 @@ import (
 	services_calculator "backend/internal/services/calculator"
 	services_calculator_optimization "backend/internal/services/calculator_optimization"
 	services_helper "backend/pkg/services/helper"
-	"log"
 	"sort"
 	"sync"
 )
@@ -26,7 +25,7 @@ func (object *botServiceImplementation) CalculatorChannel() {
 		var results []*models_calculate.CalculateResultModel
 		ranges := make(map[string][2]float64)
 
-		quotes := object.quoteRepositoryService().GetBySymbol(request.Symbol, request.TradeDirection)
+		quotes := object.quoteRepositoryService().GetWindowBySymbol(request.Symbol, request.TradeDirection, int(request.Window))
 		if len(quotes) == 0 {
 			continue
 		}
@@ -69,7 +68,6 @@ func (object *botServiceImplementation) CalculatorChannel() {
 				for j := range jobs {
 					select {
 					case <-stopChannel:
-						log.Println("STOP 1")
 						object.calculatorStop.Store(true)
 						return
 					default:
@@ -80,7 +78,6 @@ func (object *botServiceImplementation) CalculatorChannel() {
 					if currentResult := calculateService.Calculate(); currentResult != nil {
 						select {
 						case <-stopChannel:
-							log.Println("STOP 2")
 							object.calculatorStop.Store(true)
 							return
 						default:
@@ -95,7 +92,6 @@ func (object *botServiceImplementation) CalculatorChannel() {
 			for _, optimization := range optimizations {
 				select {
 				case <-stopChannel:
-					log.Println("STOP 3")
 					object.calculatorStop.Store(true)
 					close(jobs)
 					return
@@ -119,7 +115,6 @@ func (object *botServiceImplementation) CalculatorChannel() {
 			if request.Param.PercentIn > 0 {
 				select {
 				case <-stopChannel:
-					log.Println("STOP 4")
 					object.calculatorStop.Store(true)
 					close(jobs)
 					return
@@ -168,11 +163,12 @@ func (object *botServiceImplementation) CalculatorChannel() {
 		}
 
 		if object.calculatorStop.Load() == false {
-			sort.Slice(results, func(i, j int) bool {
-				return results[i].Score > results[j].Score
-			})
-
 			if len(results) > 0 {
+				sort.Slice(results, func(i, j int) bool {
+					return results[i].Score > results[j].Score
+				})
+
+				best := results[0]
 				var controlResult *models_calculate.CalculateResultModel
 
 				for _, r := range results {
@@ -182,37 +178,20 @@ func (object *botServiceImplementation) CalculatorChannel() {
 					}
 				}
 
-				best := results[0]
-
 				if controlResult == nil || controlResult.Score < best.Score {
-					// if controlResult != nil {
-					// 	log.Printf(
-					// 		"CONTROL, symbol: %s, direction: %s, "+
-					// 			"score: %.20f -> %.20f, "+
-					// 			"profit: %.2f -> %.2f, "+
-					// 			"bind: %v -> %v, "+
-					// 			"in: %.2f -> %.2f, "+
-					// 			"out: %.2f -> %.2f, "+
-					// 			"stopTime: %v -> %v, "+
-					// 			"stopPercent: %.2f -> %.2f, "+
-					// 			"current: %v -> %v\n\n",
-					// 		request.Symbol,
-					// 		request.TradeDirection,
-					// 		controlResult.Score, best.Score,
-					// 		controlResult.TotalCumulativeProfitPercent, best.TotalCumulativeProfitPercent,
-					// 		controlResult.ParamModel.Bind, best.ParamModel.Bind,
-					// 		controlResult.ParamModel.PercentIn, best.ParamModel.PercentIn,
-					// 		controlResult.ParamModel.PercentOut, best.ParamModel.PercentOut,
-					// 		controlResult.ParamModel.StopTime, best.ParamModel.StopTime,
-					// 		controlResult.ParamModel.StopPercent, best.ParamModel.StopPercent,
-					// 		controlResult.ParamModel.IsCurrent, best.ParamModel.IsCurrent,
-					// 	)
-					// }
+					request.CanSendParam = true
 
 					object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
 						CalculatorRequestModel: request,
 						Result:                 best,
 					}
+				}
+			} else if request.CanSendParam {
+				request.CanSendParam = false
+
+				object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
+					CalculatorRequestModel: request,
+					Result:                 nil,
 				}
 			}
 

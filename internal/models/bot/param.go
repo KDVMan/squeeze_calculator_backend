@@ -12,4 +12,5 @@ type ParamModel struct {
 	StopPercent float64    `json:"stopPercent"`
 	Score       float64    `json:"score"`  // что бы видеть какой был
 	Profit      float64    `json:"profit"` // что бы видеть какой был
+	LastUpdate  int64      `json:"lastUpdate"`
 }

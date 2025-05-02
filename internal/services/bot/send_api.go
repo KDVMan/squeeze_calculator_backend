@@ -25,9 +25,7 @@ func (object *botServiceImplementation) sendApi(botModel *models_bot.BotModel) e
 		stopPercent = botModel.Param.StopPercent
 	}
 
-	if botModel.Param.PercentIn >= 1 {
-		triggerStart = 1
-	} else if botModel.Param.PercentIn > 0.5 {
+	if botModel.Param.PercentIn > 0.5 {
 		triggerStart = 0.5
 	} else {
 		triggerStart = botModel.Param.PercentIn - 0.1

@@ -10,6 +10,7 @@ import (
 	services_interface_quote "backend/internal/services/quote/interface"
 	services_interface_quote_repository "backend/internal/services/quote_repository/interface"
 	services_interface_symbol "backend/internal/services/symbol/interface"
+	services_interface_symbol_list "backend/internal/services/symbol_list/interface"
 	services_interface_websocket "backend/internal/services/websocket/interface"
 	services_interface_config "backend/pkg/services/config/interface"
 	services_interface_dump "backend/pkg/services/dump/interface"
@@ -30,6 +31,7 @@ type botServiceImplementation struct {
 	quoteService                   func() services_interface_quote.QuoteService
 	quoteRepositoryService         func() services_interface_quote_repository.QuoteRepositoryService
 	exchangeWebsocketService       func() services_interface_exchange_websocket.ExchangeWebSocketService
+	symbolListService              func() services_interface_symbol_list.SymbolListService
 	futuresLimit                   int64
 	futuresCommission              float64
 	runChannel                     chan *models_bot.BotModel
@@ -52,6 +54,7 @@ func NewBotService(
 	quoteService func() services_interface_quote.QuoteService,
 	quoteRepositoryService func() services_interface_quote_repository.QuoteRepositoryService,
 	exchangeWebsocketService func() services_interface_exchange_websocket.ExchangeWebSocketService,
+	symbolListService func() services_interface_symbol_list.SymbolListService,
 ) services_interface_bot.BotService {
 	service := &botServiceImplementation{
 		loggerService:                  loggerService,
@@ -65,6 +68,7 @@ func NewBotService(
 		quoteService:                   quoteService,
 		quoteRepositoryService:         quoteRepositoryService,
 		exchangeWebsocketService:       exchangeWebsocketService,
+		symbolListService:              symbolListService,
 		futuresLimit:                   int64(configService().GetConfig().Binance.FuturesLimit),
 		futuresCommission:              configService().GetConfig().Binance.FuturesCommission,
 		runChannel:                     make(chan *models_bot.BotModel, 10000),

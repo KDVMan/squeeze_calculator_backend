@@ -15,7 +15,8 @@ type QuoteRangeModel struct {
 
 func GetTimeRange(botModel *models_bot.BotModel) (int64, int64) {
 	currentTime := time.Now().UnixMilli()
-	timeFrom := currentTime - (botModel.Window * 60 * 1000)
+	// timeFrom := currentTime - (botModel.Window * 60 * 1000)
+	timeFrom := currentTime - (1440 * 60 * 1000)
 	timeTo := currentTime
 
 	return timeFrom, timeTo

@@ -10,5 +10,6 @@ type QuoteRepositoryService interface {
 	Add(string, []*models_quote.QuoteModel)
 	UpdateQuote(string, enums.Interval, *futures.WsAggTradeEvent)
 	GetBySymbol(string, enums.TradeDirection) []*models_quote.QuoteModel
+	GetWindowBySymbol(string, enums.TradeDirection, int) []*models_quote.QuoteModel
 	Remove(string)
 }
