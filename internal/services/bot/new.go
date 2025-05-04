@@ -16,6 +16,7 @@ import (
 	services_interface_dump "backend/pkg/services/dump/interface"
 	services_interface_logger "backend/pkg/services/logger/interface"
 	services_interface_storage "backend/pkg/services/storage/interface"
+	"sync"
 	"sync/atomic"
 )
 
@@ -40,6 +41,7 @@ type botServiceImplementation struct {
 	stopChannels                   map[uint]chan struct{}
 	calculatorStop                 atomic.Bool
 	retryApiChannel                chan uint
+	delayedCoins                   sync.Map
 }
 
 func NewBotService(

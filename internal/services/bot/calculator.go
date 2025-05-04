@@ -11,11 +11,22 @@ import (
 	services_helper "backend/pkg/services/helper"
 	"sort"
 	"sync"
+	"time"
 )
 
 func (object *botServiceImplementation) CalculatorChannel() {
 	for request := range object.calculatorChannel {
 		object.calculatorStop.Store(false)
+		// startTime := time.Now()
+		now := time.Now().UnixMilli()
+
+		if tsRaw, ok := object.delayedCoins.Load(request.Symbol); ok {
+			if ts, ok := tsRaw.(int64); ok && now < ts {
+				continue
+			}
+
+			object.delayedCoins.Delete(request.Symbol)
+		}
 
 		stopChannel, exists := object.stopChannels[request.BotID]
 		if !exists {
@@ -57,7 +68,7 @@ func (object *botServiceImplementation) CalculatorChannel() {
 		var wg sync.WaitGroup
 		jobs := make(chan job)
 		resultsChannel := make(chan *models_calculate.CalculateResultModel)
-		threads := services_helper.GetCpu(0)
+		threads := services_helper.GetCpu(2)
 
 		wg.Add(threads)
 
@@ -179,20 +190,47 @@ func (object *botServiceImplementation) CalculatorChannel() {
 				}
 
 				if controlResult == nil || controlResult.Score < best.Score {
-					request.CanSendParam = true
+					request.IsFirstRun = false
 
 					object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
 						CalculatorRequestModel: request,
 						Result:                 best,
 					}
 				}
-			} else if request.CanSendParam {
-				request.CanSendParam = false
+			} else if !request.IsFirstRun && !request.IsEmptySend {
+				request.IsEmptySend = true
 
 				object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
 					CalculatorRequestModel: request,
 					Result:                 nil,
 				}
+			}
+
+			// duration := time.Since(startTime)
+			// lastUpdate := time.Since(time.UnixMilli(request.Param.LastUpdate))
+
+			// log.Printf(
+			// 	"symbol: %s, direction: %s, window: %d | duration: %.4f sec | update: %.4f sec | queue: %d | quotes: %d | isFirst: %v | iterations: %d\n",
+			// 	request.Symbol,
+			// 	request.TradeDirection,
+			// 	request.Window,
+			// 	duration.Seconds(),
+			// 	lastUpdate.Seconds(),
+			// 	len(object.calculatorChannel),
+			// 	len(quotes),
+			// 	request.IsFirstStart,
+			// 	request.Iterations,
+			// )
+
+			if len(results) == 0 {
+				delay := 20 * time.Second
+				object.delayedCoins.Store(request.Symbol, time.Now().Add(delay).UnixMilli())
+				reqCopy := *request
+
+				go func() {
+					time.Sleep(delay)
+					object.GetCalculatorChannel() <- &reqCopy
+				}()
 			}
 
 			object.GetCalculatorChannel() <- request

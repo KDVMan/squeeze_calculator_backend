@@ -7,6 +7,7 @@ import (
 	models_bot "backend/internal/models/bot"
 	models_quote "backend/internal/models/quote"
 	models_websocket "backend/internal/models/websocket"
+	services_helper "backend/pkg/services/helper"
 )
 
 func (object *botServiceImplementation) RunChannel() {
@@ -57,13 +58,14 @@ func (object *botServiceImplementation) RunChannel() {
 			StopPercentTo:   botModel.StopPercentTo,
 			StopPercentStep: botModel.StopPercentStep,
 			Algorithm:       botModel.Algorithm,
-			Iterations:      10000,
+			Iterations:      services_helper.CalculateOptimalIterations(botModel.Window, services_helper.GetCpu(2), 0.05),
 			TickSize:        botModel.TickSize,
 			MinAmount:       botModel.MinAmount,
 			Filters:         botModel.Filters,
 			Formulas:        botModel.Formulas,
 			Param:           botModel.Param,
-			CanSendParam:    true,
+			IsFirstRun:      botModel.IsFirstRun,
+			IsEmptySend:     false,
 		}
 	}
 }

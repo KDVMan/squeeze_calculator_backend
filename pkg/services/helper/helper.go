@@ -20,7 +20,18 @@ func GetCpu(minus int) int {
 	}
 
 	return 3
-	// return threads
+	return threads
+}
+
+func CalculateOptimalIterations(window int64, threads int, targetSeconds float64) int {
+	k := 6.1e-8
+	iterations := (targetSeconds * float64(threads)) / (k * float64(window))
+
+	if iterations < 100 {
+		iterations = 100
+	}
+
+	return int(iterations)
 }
 
 func MustConvertStringToFloat64(value string) float64 {

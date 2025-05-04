@@ -4,6 +4,7 @@ import (
 	services_interface_calculator "backend/internal/services/calculator/interface"
 	services_interface_calculator_preset "backend/internal/services/calculator_preset/interface"
 	services_interface_exchange "backend/internal/services/exchange/interface"
+	services_interface_exchange_limit "backend/internal/services/exchange_limit/interface"
 	services_interface_exchange_websocket "backend/internal/services/exchange_websocket/interface"
 	services_interface_quote "backend/internal/services/quote/interface"
 	services_interface_websocket "backend/internal/services/websocket/interface"
@@ -17,6 +18,7 @@ type quoteServiceImplementation struct {
 	exchangeWebsocketService func() services_interface_exchange_websocket.ExchangeWebSocketService
 	calculatorService        func() services_interface_calculator.CalculatorService
 	calculatorPresetService  func() services_interface_calculator_preset.CalculatorPresetService
+	exchangeLimitService     func() services_interface_exchange_limit.ExchangeLimitService
 }
 
 func NewQuoteService(
@@ -26,6 +28,7 @@ func NewQuoteService(
 	exchangeWebsocketService func() services_interface_exchange_websocket.ExchangeWebSocketService,
 	calculatorService func() services_interface_calculator.CalculatorService,
 	calculatorPresetService func() services_interface_calculator_preset.CalculatorPresetService,
+	exchangeLimitService func() services_interface_exchange_limit.ExchangeLimitService,
 ) services_interface_quote.QuoteService {
 	return &quoteServiceImplementation{
 		storageService:           storageService,
@@ -34,5 +37,6 @@ func NewQuoteService(
 		exchangeWebsocketService: exchangeWebsocketService,
 		calculatorService:        calculatorService,
 		calculatorPresetService:  calculatorPresetService,
+		exchangeLimitService:     exchangeLimitService,
 	}
 }

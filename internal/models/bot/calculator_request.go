@@ -33,5 +33,6 @@ type CalculatorRequestModel struct {
 	Filters         []models_calculator_formula_preset.FilterModel
 	Formulas        []models_calculator_formula_preset.FormulaModel `gorm:"-" json:"formulas"`
 	Param           ParamModel
-	CanSendParam    bool
+	IsFirstRun      bool
+	IsEmptySend     bool
 }

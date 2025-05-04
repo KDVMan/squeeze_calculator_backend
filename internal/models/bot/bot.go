@@ -44,6 +44,7 @@ type BotModel struct {
 	MinAmount                 float64                                         `json:"minAmount"`
 	Param                     ParamModel                                      `gorm:"embedded;embeddedPrefix:param_" json:"param"`
 	ApiSend                   bool                                            `json:"apiSend"`
+	IsFirstRun                bool                                            `json:"isFirstRun"`
 }
 
 func (BotModel) TableName() string {

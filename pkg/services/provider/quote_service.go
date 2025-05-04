@@ -14,6 +14,7 @@ func (object *ProviderService) QuoteService() services_interface_quote.QuoteServ
 			object.ExchangeWebsocketService,
 			object.CalculatorService,
 			object.CalculatorPresetService,
+			object.ExchangeLimitService,
 		)
 	}
 

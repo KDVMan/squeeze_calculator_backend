@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
+	"strings"
 )
 
 func (object *botServiceImplementation) Start(request *models_bot.StartRequestModel) error {
@@ -20,6 +21,7 @@ func (object *botServiceImplementation) Start(request *models_bot.StartRequestMo
 		"BTCUSDT":        {},
 		"ETHUSDT":        {},
 		"BTCUSDT_250926": {},
+		"BTCUSDT_250627": {},
 	}
 
 	calculatorPresetModel, err := object.calculatorPresetService().LoadSelected()
@@ -44,6 +46,10 @@ func (object *botServiceImplementation) Start(request *models_bot.StartRequestMo
 		}
 
 		for _, symbolModel := range symbolsModels {
+			if strings.Contains(symbolModel.Symbol, "_") {
+				continue
+			}
+
 			if _, skip := ignoreSymbols[symbolModel.Symbol]; skip {
 				continue
 			}
@@ -126,6 +132,7 @@ func (object *botServiceImplementation) startProcess(
 		TickSize:                  symbolModel.Limit.TickSize,
 		MinAmount:                 symbolModel.Limit.RightMin,
 		Param:                     models_bot.ParamModel{},
+		IsFirstRun:                true,
 	}
 
 	if err = object.storageService().DB().Create(&botModel).Error; err != nil {

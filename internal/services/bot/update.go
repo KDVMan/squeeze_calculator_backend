@@ -42,6 +42,7 @@ func (object *botServiceImplementation) Update(request *models_bot.UpdateRequest
 			botModel.StopPercentStep = calculatorPresetModel.StopPercentStep
 			botModel.Algorithm = calculatorPresetModel.Algorithm
 			botModel.Param = models_bot.ParamModel{}
+			botModel.IsFirstRun = false
 
 			shouldUpdate = true
 		}

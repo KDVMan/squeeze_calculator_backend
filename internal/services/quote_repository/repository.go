@@ -45,7 +45,7 @@ func (object *quoteRepositoryServiceImplementation) UpdateQuote(symbol string, i
 		longQuotesModels[totalLongLen-1].IsClosed = true
 		shortQuotesModels[len(shortQuotesModels)-1].IsClosed = true
 
-		if len(longQuotesModels) >= 1440 {
+		if len(longQuotesModels) >= 14400 { // 10 дней
 			longQuotesModels = longQuotesModels[1:]
 			shortQuotesModels = shortQuotesModels[1:]
 		}

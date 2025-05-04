@@ -2,10 +2,12 @@ package services_quote
 
 import (
 	"backend/internal/enums"
+	enums_exchange_limit "backend/internal/enums/exchange_limit"
 	enums_quote "backend/internal/enums/quote"
 	models_quote "backend/internal/models/quote"
 	models_websocket "backend/internal/models/websocket"
 	"sort"
+	"time"
 )
 
 func (object *quoteServiceImplementation) LoadRange(
@@ -28,6 +30,26 @@ func (object *quoteServiceImplementation) LoadRange(
 		// if variables_calculator.Stop {
 		// 	return nil, nil
 		// }
+
+		exchangeLimitModel, err := object.exchangeLimitService().Load()
+		if err != nil {
+			return nil, err
+		}
+
+		shouldWait := false
+
+		for _, limit := range exchangeLimitModel {
+			if limit.Type == enums_exchange_limit.RateTypeWeight && limit.TotalLeft <= 1000 {
+				shouldWait = true
+				break
+			}
+		}
+
+		if shouldWait {
+			now := time.Now()
+			wait := 60 - now.Second()
+			time.Sleep(time.Duration(wait+1) * time.Second)
+		}
 
 		result, err := object.Load(request)
 		if err != nil {
