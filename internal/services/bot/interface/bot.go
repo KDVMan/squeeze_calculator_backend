@@ -10,12 +10,13 @@ type BotService interface {
 	LoadAll() []*models_bot.BotModel
 	LoadByID(uint) *models_bot.BotModel
 	RunChannel()
-	GetRunChannel() chan *models_bot.BotModel
+	GetRunChannel() chan uint
 	UpdateStatus(*models_bot.UpdateStatusRequestModel) error
 	CalculatorChannel()
-	GetCalculatorChannel() chan *models_bot.CalculatorRequestModel
+	GetCalculatorChannel() chan uint
 	CalculateChannel()
 	GetCalculateChannel() chan *models_bot.CalculateRequestModel
 	StopBot(*models_bot.BotModel)
 	Update(*models_bot.UpdateRequestModel) error
+	SetTest()
 }

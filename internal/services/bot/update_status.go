@@ -17,7 +17,8 @@ func (object *botServiceImplementation) UpdateStatus(request *models_bot.UpdateS
 
 	if request.Status == enums_bot.StatusNew {
 		object.stopChannels[botModel.ID] = make(chan struct{})
-		object.GetRunChannel() <- &botModel
+		object.botRepositoryService().Add(&botModel)
+		object.GetRunChannel() <- botModel.ID
 	} else if request.Status == enums_bot.StatusStop {
 		botModel.Status = enums_bot.StatusStop
 
@@ -25,6 +26,7 @@ func (object *botServiceImplementation) UpdateStatus(request *models_bot.UpdateS
 			return err
 		}
 
+		object.botRepositoryService().Add(&botModel)
 		object.StopBot(&botModel)
 
 		object.websocketService().GetBroadcastChannel() <- &models_websocket.BroadcastChannelModel{
@@ -35,6 +37,8 @@ func (object *botServiceImplementation) UpdateStatus(request *models_bot.UpdateS
 		if err = object.storageService().DB().Delete(&botModel).Error; err != nil {
 			return err
 		}
+
+		object.botRepositoryService().Remove(botModel.ID)
 
 		object.websocketService().GetBroadcastChannel() <- &models_websocket.BroadcastChannelModel{
 			Event: enums_websocket.WebsocketEventBotList,

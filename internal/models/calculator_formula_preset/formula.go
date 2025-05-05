@@ -24,5 +24,7 @@ func ApplyFormula(result *models_calculate.CalculateResultModel, formulas []Form
 		score += value * formula.Multiplier
 	}
 
+	score += 1000
+
 	return score
 }

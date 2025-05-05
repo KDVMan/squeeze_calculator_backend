@@ -9,6 +9,7 @@ import (
 	services_interface_symbol "backend/internal/services/symbol/interface"
 	services_interface_logger "backend/pkg/services/logger/interface"
 	"sync"
+	"time"
 )
 
 type exchangeWebsocketServiceImplementation struct {
@@ -20,10 +21,10 @@ type exchangeWebsocketServiceImplementation struct {
 	currentPriceSymbol      string
 	currentPriceInterval    enums.Interval
 	currentPriceStopChannel chan struct{}
-	currentPriceMutex       sync.Mutex
 	symbolsSubscriptions    map[string]chan struct{}
 	symbolMutex             sync.Mutex
 	doneChannel             chan struct{}
+	reconnectDelay          time.Duration
 }
 
 func NewExchangeWebsocketService(
@@ -40,10 +41,10 @@ func NewExchangeWebsocketService(
 		quoteService:            quoteService,
 		quoteRepositoryService:  quoteRepositoryService,
 		currentPriceStopChannel: nil,
-		currentPriceMutex:       sync.Mutex{},
 		symbolsSubscriptions:    make(map[string]chan struct{}),
 		symbolMutex:             sync.Mutex{},
 		doneChannel:             make(chan struct{}),
+		reconnectDelay:          5 * time.Second,
 	}
 }
 

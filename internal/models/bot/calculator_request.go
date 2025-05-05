@@ -32,6 +32,7 @@ type CalculatorRequestModel struct {
 	MinAmount       float64
 	Filters         []models_calculator_formula_preset.FilterModel
 	Formulas        []models_calculator_formula_preset.FormulaModel `gorm:"-" json:"formulas"`
+	ParamOld        ParamModel
 	Param           ParamModel
 	IsFirstRun      bool
 	IsEmptySend     bool

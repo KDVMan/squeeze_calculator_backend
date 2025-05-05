@@ -11,26 +11,29 @@ func (object *botServiceImplementation) CalculateChannel() {
 	const checkTime = 3000
 
 	for request := range object.calculateChannel {
-		if request.Result == nil {
-			var botModel models_bot.BotModel
+		botModel, exists := object.botRepositoryService().Get(request.BotID)
+		if !exists {
+			continue
+		}
 
-			if err := object.storageService().DB().First(&botModel, request.CalculatorRequestModel.BotID).Error; err != nil {
-				object.loggerService().Error().Printf("failed to load bot for empty result: %v", err)
-				continue
+		if request.Result == nil {
+			botModel.ParamOld = models_bot.ParamModel{
+				HasData: botModel.Param.HasData,
 			}
 
 			botModel.Param = models_bot.ParamModel{
 				LastUpdate: time.Now().UnixMilli(),
+				HasData:    true,
 			}
 
 			botModel.ApiSend = true
 
-			if err := object.storageService().DB().Save(&botModel).Error; err != nil {
+			if err := object.storageService().DB().Save(botModel).Error; err != nil {
 				object.loggerService().Error().Printf("failed to save empty params: %v", err)
 				continue
 			}
 
-			if err := object.sendApi(&botModel); err != nil {
+			if err := object.sendApi(botModel); err != nil {
 				object.loggerService().Error().Printf("failed to send API for bot %d (empty): %v", botModel.ID, err)
 				botModel.ApiSend = false
 				_ = object.storageService().DB().Save(&botModel)
@@ -45,48 +48,45 @@ func (object *botServiceImplementation) CalculateChannel() {
 			continue
 		}
 
-		newParam := request.Result.ParamModel
-		oldParam := request.CalculatorRequestModel.Param
-
-		if oldParam.LastUpdate+checkTime > time.Now().UnixMilli() {
+		if botModel.Param.LastUpdate+checkTime > time.Now().UnixMilli() {
 			continue
 		}
 
-		if newParam.Bind != oldParam.Bind ||
-			newParam.PercentIn != oldParam.PercentIn ||
-			newParam.PercentOut != oldParam.PercentOut ||
-			newParam.StopTime != oldParam.StopTime ||
-			newParam.StopPercent != oldParam.StopPercent {
-			// oldScore := request.CalculatorRequestModel.Param.Score
-			// oldProfit := request.CalculatorRequestModel.Param.Profit
-
-			var botModel models_bot.BotModel
-
-			if err := object.storageService().DB().First(&botModel, request.CalculatorRequestModel.BotID).Error; err != nil {
-				object.loggerService().Error().Printf("failed to load bot: %v", err)
-				continue
+		if request.Result.ParamModel.Bind != botModel.Param.Bind ||
+			request.Result.ParamModel.PercentIn != botModel.Param.PercentIn ||
+			request.Result.ParamModel.PercentOut != botModel.Param.PercentOut ||
+			request.Result.ParamModel.StopTime != botModel.Param.StopTime ||
+			request.Result.ParamModel.StopPercent != botModel.Param.StopPercent {
+			botModel.ParamOld = models_bot.ParamModel{
+				Bind:        botModel.Param.Bind,
+				PercentIn:   botModel.Param.PercentIn,
+				PercentOut:  botModel.Param.PercentOut,
+				StopTime:    botModel.Param.StopTime,
+				StopPercent: botModel.Param.StopPercent,
+				Score:       botModel.Param.Score,
+				LastUpdate:  botModel.Param.LastUpdate,
+				HasData:     botModel.Param.HasData,
 			}
 
-			request.CalculatorRequestModel.Param = models_bot.ParamModel{
-				Bind:        newParam.Bind,
-				PercentIn:   newParam.PercentIn,
-				PercentOut:  newParam.PercentOut,
-				StopTime:    newParam.StopTime,
-				StopPercent: newParam.StopPercent,
+			botModel.Param = models_bot.ParamModel{
+				Bind:        request.Result.ParamModel.Bind,
+				PercentIn:   request.Result.ParamModel.PercentIn,
+				PercentOut:  request.Result.ParamModel.PercentOut,
+				StopTime:    request.Result.ParamModel.StopTime,
+				StopPercent: request.Result.ParamModel.StopPercent,
 				Score:       request.Result.Score,
-				Profit:      request.Result.TotalCumulativeProfitPercent,
 				LastUpdate:  time.Now().UnixMilli(),
+				HasData:     true,
 			}
 
-			botModel.Param = request.CalculatorRequestModel.Param
 			botModel.ApiSend = true
 
-			if err := object.storageService().DB().Save(&botModel).Error; err != nil {
+			if err := object.storageService().DB().Save(botModel).Error; err != nil {
 				object.loggerService().Error().Printf("failed to save bot params: %v", err)
 				continue
 			}
 
-			if err := object.sendApi(&botModel); err != nil {
+			if err := object.sendApi(botModel); err != nil {
 				object.loggerService().Error().Printf("failed to send API for bot %d: %v", botModel.ID, err)
 
 				botModel.ApiSend = false
@@ -100,28 +100,6 @@ func (object *botServiceImplementation) CalculateChannel() {
 				Event: enums_websocket.WebsocketEventBot,
 				Data:  botModel,
 			}
-
-			// log.Printf(
-			// 	"symbol: %s, direction: %s, score: %.4f -> %.4f, "+
-			// 		"profit: %.2f -> %.2f, "+
-			// 		"bind: %v -> %v, "+
-			// 		"in: %.2f -> %.2f, "+
-			// 		"out: %.2f -> %.2f, "+
-			// 		"stopTime: %v -> %v, "+
-			// 		"stopPercent: %.2f -> %.2f\n\n",
-			// 	request.CalculatorRequestModel.Symbol,
-			// 	request.CalculatorRequestModel.TradeDirection,
-			// 	oldScore,
-			// 	request.Result.Score,
-			// 	oldProfit,
-			// 	request.Result.TotalCumulativeProfitPercent,
-			// 	oldParam.Bind,
-			// 	newParam.Bind,
-			// 	oldParam.PercentIn, newParam.PercentIn,
-			// 	oldParam.PercentOut, newParam.PercentOut,
-			// 	oldParam.StopTime, newParam.StopTime,
-			// 	oldParam.StopPercent, newParam.StopPercent,
-			// )
 		}
 	}
 }

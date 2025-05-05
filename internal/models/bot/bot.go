@@ -42,9 +42,12 @@ type BotModel struct {
 	FormulasJson              string                                          `json:"-"`
 	TickSize                  float64                                         `json:"tickSize"`
 	MinAmount                 float64                                         `json:"minAmount"`
-	Param                     ParamModel                                      `gorm:"embedded;embeddedPrefix:param_" json:"param"`
+	Iterations                int                                             `json:"iterations"`
+	ParamOld                  ParamModel                                      `gorm:"embedded;embeddedPrefix:param_old" json:"paramOld"`
+	Param                     ParamModel                                      `gorm:"embedded;embeddedPrefix:param" json:"param"`
 	ApiSend                   bool                                            `json:"apiSend"`
 	IsFirstRun                bool                                            `json:"isFirstRun"`
+	IsEmptySend               bool                                            `json:"isEmptySend"`
 }
 
 func (BotModel) TableName() string {

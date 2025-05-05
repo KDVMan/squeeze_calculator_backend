@@ -23,7 +23,8 @@ func (object *botServiceImplementation) Init() {
 			continue
 		}
 
+		object.botRepositoryService().Add(&botModel)
 		object.stopChannels[botModel.ID] = make(chan struct{})
-		object.GetRunChannel() <- &botModel
+		object.GetRunChannel() <- botModel.ID
 	}
 }

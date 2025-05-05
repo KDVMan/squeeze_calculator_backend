@@ -15,50 +15,52 @@ import (
 )
 
 func (object *botServiceImplementation) CalculatorChannel() {
-	for request := range object.calculatorChannel {
+	for botID := range object.calculatorChannel {
 		object.calculatorStop.Store(false)
-		// startTime := time.Now()
-		now := time.Now().UnixMilli()
 
-		if tsRaw, ok := object.delayedCoins.Load(request.Symbol); ok {
-			if ts, ok := tsRaw.(int64); ok && now < ts {
-				continue
-			}
-
-			object.delayedCoins.Delete(request.Symbol)
-		}
-
-		stopChannel, exists := object.stopChannels[request.BotID]
+		botModel, exists := object.botRepositoryService().Get(botID)
 		if !exists {
 			continue
 		}
 
-		var results []*models_calculate.CalculateResultModel
-		ranges := make(map[string][2]float64)
+		now := time.Now().UnixMilli()
 
-		quotes := object.quoteRepositoryService().GetWindowBySymbol(request.Symbol, request.TradeDirection, int(request.Window))
+		if tsRaw, ok := object.delayedCoins.Load(botID); ok {
+			if ts, ok := tsRaw.(int64); ok && now < ts {
+				continue
+			}
+
+			object.delayedCoins.Delete(botID)
+		}
+
+		stopChannel, exists := object.stopChannels[botID]
+		if !exists {
+			continue
+		}
+
+		quotes := object.quoteRepositoryService().GetWindowBySymbol(botModel.Symbol, botModel.TradeDirection, int(botModel.Window))
 		if len(quotes) == 0 {
 			continue
 		}
 
 		optimizations := services_calculator_optimization.Load(&models_calculator_optimization.CalculatorOptimizationRequestModel{
-			Bind:            request.Bind,
-			PercentInFrom:   request.PercentInFrom,
-			PercentInTo:     request.PercentInTo,
-			PercentInStep:   request.PercentInStep,
-			PercentOutFrom:  request.PercentOutFrom,
-			PercentOutTo:    request.PercentOutTo,
-			PercentOutStep:  request.PercentOutStep,
-			StopTime:        request.StopTime,
-			StopTimeFrom:    request.StopTimeFrom,
-			StopTimeTo:      request.StopTimeTo,
-			StopTimeStep:    request.StopTimeStep,
-			StopPercent:     request.StopPercent,
-			StopPercentFrom: request.StopPercentFrom,
-			StopPercentTo:   request.StopPercentTo,
-			StopPercentStep: request.StopPercentStep,
-			Algorithm:       request.Algorithm,
-			Iterations:      request.Iterations,
+			Bind:            botModel.Bind,
+			PercentInFrom:   botModel.PercentInFrom,
+			PercentInTo:     botModel.PercentInTo,
+			PercentInStep:   botModel.PercentInStep,
+			PercentOutFrom:  botModel.PercentOutFrom,
+			PercentOutTo:    botModel.PercentOutTo,
+			PercentOutStep:  botModel.PercentOutStep,
+			StopTime:        botModel.StopTime,
+			StopTimeFrom:    botModel.StopTimeFrom,
+			StopTimeTo:      botModel.StopTimeTo,
+			StopTimeStep:    botModel.StopTimeStep,
+			StopPercent:     botModel.StopPercent,
+			StopPercentFrom: botModel.StopPercentFrom,
+			StopPercentTo:   botModel.StopPercentTo,
+			StopPercentStep: botModel.StopPercentStep,
+			Algorithm:       botModel.Algorithm,
+			Iterations:      botModel.Iterations,
 		})
 
 		type job struct {
@@ -84,7 +86,7 @@ func (object *botServiceImplementation) CalculatorChannel() {
 					default:
 					}
 
-					calculateService := services_calculate.NewCalculateService(j.param, quotes, request.TickSize, object.futuresCommission)
+					calculateService := services_calculate.NewCalculateService(j.param, quotes, botModel.TickSize, object.futuresCommission)
 
 					if currentResult := calculateService.Calculate(); currentResult != nil {
 						select {
@@ -111,8 +113,8 @@ func (object *botServiceImplementation) CalculatorChannel() {
 
 				jobs <- job{
 					&models_calculate.ParamModel{
-						TradeDirection: request.TradeDirection,
-						Interval:       request.Interval,
+						TradeDirection: botModel.TradeDirection,
+						Interval:       botModel.Interval,
 						Bind:           optimization.Bind,
 						PercentIn:      optimization.PercentIn,
 						PercentOut:     optimization.PercentOut,
@@ -123,7 +125,7 @@ func (object *botServiceImplementation) CalculatorChannel() {
 				}
 			}
 
-			if request.Param.PercentIn > 0 {
+			if botModel.Param.PercentIn > 0 {
 				select {
 				case <-stopChannel:
 					object.calculatorStop.Store(true)
@@ -134,13 +136,13 @@ func (object *botServiceImplementation) CalculatorChannel() {
 
 				jobs <- job{
 					&models_calculate.ParamModel{
-						TradeDirection: request.TradeDirection,
-						Interval:       request.Interval,
-						Bind:           request.Param.Bind,
-						PercentIn:      request.Param.PercentIn,
-						PercentOut:     request.Param.PercentOut,
-						StopTime:       request.Param.StopTime,
-						StopPercent:    request.Param.StopPercent,
+						TradeDirection: botModel.TradeDirection,
+						Interval:       botModel.Interval,
+						Bind:           botModel.Param.Bind,
+						PercentIn:      botModel.Param.PercentIn,
+						PercentOut:     botModel.Param.PercentOut,
+						StopTime:       botModel.Param.StopTime,
+						StopPercent:    botModel.Param.StopPercent,
 						IsCurrent:      true,
 					},
 				}
@@ -154,12 +156,15 @@ func (object *botServiceImplementation) CalculatorChannel() {
 			close(resultsChannel)
 		}()
 
+		var results []*models_calculate.CalculateResultModel
+		ranges := make(map[string][2]float64)
+
 		for calculateResult := range resultsChannel {
 			if object.calculatorStop.Load() {
 				break
 			}
 
-			if models_calculator_formula_preset.ApplyFilters(calculateResult, request.Filters) {
+			if models_calculator_formula_preset.ApplyFilters(calculateResult, botModel.Filters) {
 				results = append(results, calculateResult)
 				services_calculator.UpdateValueRanges(calculateResult, ranges)
 			}
@@ -170,74 +175,57 @@ func (object *botServiceImplementation) CalculatorChannel() {
 				break
 			}
 
-			result.Score = models_calculator_formula_preset.ApplyFormula(result, request.Formulas, ranges)
+			result.Score = models_calculator_formula_preset.ApplyFormula(result, botModel.Formulas, ranges)
 		}
 
-		if object.calculatorStop.Load() == false {
-			if len(results) > 0 {
-				sort.Slice(results, func(i, j int) bool {
-					return results[i].Score > results[j].Score
-				})
+		if object.calculatorStop.Load() {
+			continue
+		}
 
-				best := results[0]
-				var controlResult *models_calculate.CalculateResultModel
+		// if object.test {
+		// 	results = nil
+		// 	log.Println()
+		// }
 
-				for _, r := range results {
-					if r.ParamModel.IsCurrent {
-						controlResult = r
-						break
-					}
-				}
+		if len(results) > 0 {
+			sort.Slice(results, func(i, j int) bool {
+				return results[i].Score > results[j].Score
+			})
 
-				if controlResult == nil || controlResult.Score < best.Score {
-					request.IsFirstRun = false
+			bestResult := results[0]
+			botModel.IsFirstRun = false
+			botModel.IsEmptySend = false
 
-					object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
-						CalculatorRequestModel: request,
-						Result:                 best,
-					}
-				}
-			} else if !request.IsFirstRun && !request.IsEmptySend {
-				request.IsEmptySend = true
-
+			if bestResult.Score > botModel.Param.Score {
 				object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
-					CalculatorRequestModel: request,
-					Result:                 nil,
+					BotID:  botID,
+					Result: bestResult,
 				}
 			}
+		} else if botModel.IsEmptySend == false {
+			botModel.IsFirstRun = false
+			botModel.IsEmptySend = true
 
-			// duration := time.Since(startTime)
-			// lastUpdate := time.Since(time.UnixMilli(request.Param.LastUpdate))
-
-			// log.Printf(
-			// 	"symbol: %s, direction: %s, window: %d | duration: %.4f sec | update: %.4f sec | queue: %d | quotes: %d | isFirst: %v | iterations: %d\n",
-			// 	request.Symbol,
-			// 	request.TradeDirection,
-			// 	request.Window,
-			// 	duration.Seconds(),
-			// 	lastUpdate.Seconds(),
-			// 	len(object.calculatorChannel),
-			// 	len(quotes),
-			// 	request.IsFirstStart,
-			// 	request.Iterations,
-			// )
-
-			if len(results) == 0 {
-				delay := 20 * time.Second
-				object.delayedCoins.Store(request.Symbol, time.Now().Add(delay).UnixMilli())
-				reqCopy := *request
-
-				go func() {
-					time.Sleep(delay)
-					object.GetCalculatorChannel() <- &reqCopy
-				}()
+			object.GetCalculateChannel() <- &models_bot.CalculateRequestModel{
+				BotID:  botID,
+				Result: nil,
 			}
+		}
 
-			object.GetCalculatorChannel() <- request
+		if len(results) == 0 {
+			delay := 20 * time.Second
+			object.delayedCoins.Store(botID, time.Now().Add(delay).UnixMilli())
+
+			go func() {
+				time.Sleep(delay)
+				object.GetCalculatorChannel() <- botID
+			}()
+		} else {
+			object.GetCalculatorChannel() <- botID
 		}
 	}
 }
 
-func (object *botServiceImplementation) GetCalculatorChannel() chan *models_bot.CalculatorRequestModel {
+func (object *botServiceImplementation) GetCalculatorChannel() chan uint {
 	return object.calculatorChannel
 }

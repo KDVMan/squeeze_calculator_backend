@@ -41,8 +41,10 @@ func (object *botServiceImplementation) Update(request *models_bot.UpdateRequest
 			botModel.StopPercentTo = calculatorPresetModel.StopPercentTo
 			botModel.StopPercentStep = calculatorPresetModel.StopPercentStep
 			botModel.Algorithm = calculatorPresetModel.Algorithm
+			botModel.ParamOld = models_bot.ParamModel{}
 			botModel.Param = models_bot.ParamModel{}
 			botModel.IsFirstRun = false
+			botModel.IsEmptySend = false
 
 			shouldUpdate = true
 		}
@@ -50,7 +52,10 @@ func (object *botServiceImplementation) Update(request *models_bot.UpdateRequest
 		if botModel.CalculatorFormulaPresetID == request.CalculatorFormulaPresetID {
 			botModel.Filters = calculatorFormulaPresetModel.Filters
 			botModel.Formulas = calculatorFormulaPresetModel.Formulas
+			botModel.ParamOld = models_bot.ParamModel{}
 			botModel.Param = models_bot.ParamModel{}
+			botModel.IsFirstRun = false
+			botModel.IsEmptySend = false
 
 			shouldUpdate = true
 		}
@@ -61,13 +66,15 @@ func (object *botServiceImplementation) Update(request *models_bot.UpdateRequest
 				continue
 			}
 
+			object.botRepositoryService().Add(&botModel)
+
 			if botModel.Status == enums_bot.StatusStart {
 				if ch, ok := object.stopChannels[botModel.ID]; ok {
 					close(ch)
 				}
 
 				object.stopChannels[botModel.ID] = make(chan struct{})
-				object.GetRunChannel() <- &botModel
+				object.GetRunChannel() <- botModel.ID
 			}
 		}
 	}

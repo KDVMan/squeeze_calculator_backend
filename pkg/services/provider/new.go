@@ -11,6 +11,7 @@ import (
 	routes_interface_symbol "backend/internal/routes/symbol/interface"
 	routes_interface_symbol_list "backend/internal/routes/symbol_list/interface"
 	services_interface_bot "backend/internal/services/bot/interface"
+	services_interface_bot_repository "backend/internal/services/bot_repository/interface"
 	services_interface_calculator "backend/internal/services/calculator/interface"
 	services_interface_calculator_formula_preset "backend/internal/services/calculator_formula_preset/interface"
 	services_interface_calculator_preset "backend/internal/services/calculator_preset/interface"
@@ -71,6 +72,7 @@ type ProviderService struct {
 	calculatorFormulaPresetService services_interface_calculator_formula_preset.CalculatorFormulaPresetService
 	botService                     services_interface_bot.BotService
 	quoteRepositoryService         services_interface_quote_repository.QuoteRepositoryService
+	botRepositoryService           services_interface_bot_repository.BotRepositoryService
 }
 
 func NewProviderService(parentCtx context.Context) *ProviderService {

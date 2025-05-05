@@ -20,6 +20,7 @@ func (object *ProviderService) BotService() services_interface_bot.BotService {
 			object.QuoteRepositoryService,
 			object.ExchangeWebsocketService,
 			object.SymbolListService,
+			object.BotRepositoryService,
 		)
 	}
 

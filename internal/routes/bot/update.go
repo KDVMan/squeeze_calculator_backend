@@ -8,6 +8,8 @@ import (
 
 func (object *botRouteImplementation) update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// object.botService().SetTest()
+
 		var request models_bot.UpdateRequestModel
 
 		if err := object.requestService().Decode(w, r, &request); err != nil {

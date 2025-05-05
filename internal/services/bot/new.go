@@ -4,6 +4,7 @@ import (
 	enums_bot "backend/internal/enums/bot"
 	models_bot "backend/internal/models/bot"
 	services_interface_bot "backend/internal/services/bot/interface"
+	services_interface_bot_repository "backend/internal/services/bot_repository/interface"
 	services_interface_calculator_formula_preset "backend/internal/services/calculator_formula_preset/interface"
 	services_interface_calculator_preset "backend/internal/services/calculator_preset/interface"
 	services_interface_exchange_websocket "backend/internal/services/exchange_websocket/interface"
@@ -16,6 +17,7 @@ import (
 	services_interface_dump "backend/pkg/services/dump/interface"
 	services_interface_logger "backend/pkg/services/logger/interface"
 	services_interface_storage "backend/pkg/services/storage/interface"
+	"log"
 	"sync"
 	"sync/atomic"
 )
@@ -33,15 +35,17 @@ type botServiceImplementation struct {
 	quoteRepositoryService         func() services_interface_quote_repository.QuoteRepositoryService
 	exchangeWebsocketService       func() services_interface_exchange_websocket.ExchangeWebSocketService
 	symbolListService              func() services_interface_symbol_list.SymbolListService
+	botRepositoryService           func() services_interface_bot_repository.BotRepositoryService
 	futuresLimit                   int64
 	futuresCommission              float64
-	runChannel                     chan *models_bot.BotModel
-	calculatorChannel              chan *models_bot.CalculatorRequestModel
+	runChannel                     chan uint
+	calculatorChannel              chan uint
 	calculateChannel               chan *models_bot.CalculateRequestModel
 	stopChannels                   map[uint]chan struct{}
 	calculatorStop                 atomic.Bool
 	retryApiChannel                chan uint
 	delayedCoins                   sync.Map
+	test                           bool
 }
 
 func NewBotService(
@@ -57,6 +61,7 @@ func NewBotService(
 	quoteRepositoryService func() services_interface_quote_repository.QuoteRepositoryService,
 	exchangeWebsocketService func() services_interface_exchange_websocket.ExchangeWebSocketService,
 	symbolListService func() services_interface_symbol_list.SymbolListService,
+	botRepositoryService func() services_interface_bot_repository.BotRepositoryService,
 ) services_interface_bot.BotService {
 	service := &botServiceImplementation{
 		loggerService:                  loggerService,
@@ -71,18 +76,26 @@ func NewBotService(
 		quoteRepositoryService:         quoteRepositoryService,
 		exchangeWebsocketService:       exchangeWebsocketService,
 		symbolListService:              symbolListService,
+		botRepositoryService:           botRepositoryService,
 		futuresLimit:                   int64(configService().GetConfig().Binance.FuturesLimit),
 		futuresCommission:              configService().GetConfig().Binance.FuturesCommission,
-		runChannel:                     make(chan *models_bot.BotModel, 10000),
-		calculatorChannel:              make(chan *models_bot.CalculatorRequestModel, 10000),
+		runChannel:                     make(chan uint, 10000),
+		calculatorChannel:              make(chan uint, 10000),
 		calculateChannel:               make(chan *models_bot.CalculateRequestModel, 10000),
 		stopChannels:                   make(map[uint]chan struct{}),
 		retryApiChannel:                make(chan uint, 1000),
+		test:                           false,
 	}
 
 	go service.retryApi()
 
 	return service
+}
+
+func (object *botServiceImplementation) SetTest() {
+	log.Println("test 1", object.test)
+	object.test = !object.test
+	log.Println("test 2", object.test)
 }
 
 func (object *botServiceImplementation) StopBot(botModel *models_bot.BotModel) {

@@ -131,16 +131,20 @@ func (object *botServiceImplementation) startProcess(
 		Formulas:                  calculatorFormulaPresetModel.Formulas,
 		TickSize:                  symbolModel.Limit.TickSize,
 		MinAmount:                 symbolModel.Limit.RightMin,
+		Iterations:                services_helper.CalculateOptimalIterations(calculatorPresetModel.Window, services_helper.GetCpu(2), 0.05),
+		ParamOld:                  models_bot.ParamModel{},
 		Param:                     models_bot.ParamModel{},
 		IsFirstRun:                true,
+		IsEmptySend:               true,
 	}
 
 	if err = object.storageService().DB().Create(&botModel).Error; err != nil {
 		return err
 	}
 
+	object.botRepositoryService().Add(&botModel)
 	object.stopChannels[botModel.ID] = make(chan struct{})
-	object.GetRunChannel() <- &botModel
+	object.GetRunChannel() <- botModel.ID
 
 	object.websocketService().GetBroadcastChannel() <- &models_websocket.BroadcastChannelModel{
 		Event: enums_websocket.WebsocketEventBot,

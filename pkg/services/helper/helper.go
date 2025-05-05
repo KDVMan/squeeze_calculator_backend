@@ -152,3 +152,10 @@ func GenerateRangeByStep(from int64, to int64, step int64) []int64 {
 func MustConvertUnixMillisecondsToString(value int64) string {
 	return time.UnixMilli(value).Format("02.01.2006 15:04:05.000")
 }
+
+func SafeSendSignal(ch chan struct{}) {
+	select {
+	case ch <- struct{}{}:
+	default:
+	}
+}
