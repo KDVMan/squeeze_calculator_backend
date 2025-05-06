@@ -4,7 +4,6 @@ import (
 	"backend/internal/enums"
 	services_helper "backend/pkg/services/helper"
 	"github.com/adshao/go-binance/v2/futures"
-	"log"
 	"time"
 )
 
@@ -12,7 +11,6 @@ func (object *exchangeWebsocketServiceImplementation) SubscribeSymbol(symbol str
 	object.symbolMutex.Lock()
 
 	if _, exists := object.symbolsSubscriptions[symbol]; exists {
-		log.Println("already subscribed", symbol)
 		object.symbolMutex.Unlock()
 		return
 	}
