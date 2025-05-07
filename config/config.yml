@@ -1,0 +1,22 @@
+logger:
+  use_file_on_dev: false
+  use_file_on_prod: true
+  error_file_name: "error.log"
+  info_file_name: "info.log"
+
+api:
+  url: "http://127.0.0.1:8888/api/bot/add_calculator"
+
+db:
+  path: "C:/Users/Denis/Downloads/squeeze_calculator.db"
+
+http_server:
+  host: "127.0.0.1"
+  port: 8889
+  read_timeout: 60s
+  write_timeout: 60s
+  idle_timeout: 60s
+
+binance:
+  futures_limit: 1500
+  futures_commission: 0.02
